@@ -1,0 +1,812 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Demo FAIR de propagación de pérdidas desde el nodo de identidad del Estado.">
+<title>Propagación desde la identidad</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600&family=Public+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: consola de análisis con franja de indicadores fija, pestañas por etapa del razonamiento y panel lateral de supuestos. */
+:root{
+  --bg:#F3F5F2; --paper:#FFFFFF; --ink:#16211D; --muted:#56635D; --line:#D8DED8; --tint:#E8EEEB; --tint-2:#F7F9F7;
+  --petrol:#0E5359; --petrol-2:#2E7F84; --petrol-3:#8FC3C6; --ochre:#B07A12; --ochre-soft:#F6ECD6; --risk:#B03E2E; --risk-soft:#F7E2DE; --ok:#2F7A4E;
+  --on-strong:#FFFFFF;
+  --f-display:"Source Serif 4", Georgia, serif;
+  --f-body:"Public Sans", "Segoe UI", Arial, sans-serif;
+  --f-data:"IBM Plex Mono", Consolas, monospace;
+}
+:root[data-theme="dark"]{
+  --bg:#0F1614; --paper:#17201D; --ink:#E3EAE6; --muted:#9FADA7; --line:#2B3732; --tint:#1F2A26; --tint-2:#1A2420;
+  --petrol:#6CB9BE; --petrol-2:#4E9EA3; --petrol-3:#2F6266; --ochre:#E0AE4C; --ochre-soft:#30291A; --risk:#E5806C; --risk-soft:#3A221D; --ok:#7CC79A;
+  --on-strong:#0E1714; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14.5px;line-height:1.55}
+.shell{max-width:1320px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+header.top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 24px;align-items:flex-end}
+.kicker{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ochre);font-weight:700}
+h1{font-family:var(--f-display);font-weight:600;font-size:clamp(24px,3.4vw,34px);line-height:1.15;margin:6px 0 4px;text-wrap:balance}
+.lead{color:var(--muted);max-width:78ch;margin:0}
+.disclaimer{margin-top:12px;font-size:12.5px;background:var(--ochre-soft);color:var(--ink);border-left:3px solid var(--ochre);padding:8px 12px;border-radius:0 4px 4px 0}
+.kpis{position:sticky;top:env(safe-area-inset-top, 0px);z-index:5;margin-top:16px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+@media (max-width:980px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr));position:static}}
+@media (max-width:520px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--paper);padding:10px 12px}
+.kpi .l{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.kpi .v{font-family:var(--f-data);font-size:19px;font-variant-numeric:tabular-nums;color:var(--petrol);margin-top:2px}
+.kpi .d{font-size:11.5px;color:var(--muted);min-height:16px}
+.kpi .d.ok{color:var(--ok)}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;margin-top:16px}
+@media (max-width:1060px){.layout{grid-template-columns:minmax(0,1fr)}}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--line)}
+.tab{font:inherit;font-size:13.5px;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);padding:9px 12px;cursor:pointer}
+.tab .i{font-family:var(--f-data);font-size:11.5px;color:var(--ochre);margin-right:6px}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--petrol);font-weight:700}
+.tab:focus-visible{outline:2px solid var(--ochre);outline-offset:-2px}
+.panel{padding-top:16px;min-width:0}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:16px 18px;min-width:0}
+.card + .card{margin-top:14px}
+h2{font-family:var(--f-display);font-weight:600;font-size:21px;margin:0 0 6px;text-wrap:balance}
+h3{font-size:14px;margin:0 0 8px;color:var(--petrol);letter-spacing:.01em}
+p{margin:0 0 10px;max-width:80ch}
+.muted{color:var(--muted)}
+.small{font-size:12.5px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:820px){.grid2{grid-template-columns:minmax(0,1fr)}}
+/* árbol FAIR */
+.tree{display:grid;gap:8px}
+.tnode{border:1px solid var(--line);border-radius:5px;padding:8px 10px;background:var(--tint-2)}
+.tnode b{display:block;font-size:13px}
+.tnode .s{font-size:12px;color:var(--muted)}
+.tnode.root{background:var(--petrol);color:var(--on-strong);border-color:var(--petrol)}
+.tnode.root .s{color:var(--on-strong);opacity:.85}
+.tbranch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding-left:14px;border-left:2px solid var(--line)}
+.tleaves{display:grid;gap:6px;padding-left:14px;border-left:2px dashed var(--line)}
+.chip{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:1px 6px;border-radius:3px;margin-left:4px;vertical-align:1px}
+.c-src{background:var(--tint);color:var(--petrol)}
+.c-nos{background:var(--risk-soft);color:var(--risk)}
+.c-who{background:var(--ochre-soft);color:var(--ochre)}
+/* grafo */
+.graphwrap{position:relative}
+svg text{font-family:var(--f-body)}
+.edge{transition:stroke-width .45s ease}
+.edge.flow{stroke:var(--risk)!important;stroke-dasharray:9 7;animation:dash .55s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-16}}
+@media (prefers-reduced-motion:reduce){.edge.flow{animation:none}.edge{transition:none}}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+button.b{font:inherit;font-size:13.5px;border:1px solid var(--petrol);background:var(--petrol);color:var(--on-strong);border-radius:5px;padding:8px 13px;cursor:pointer}
+button.b.sec{background:transparent;color:var(--petrol)}
+button.b:disabled{opacity:.5;cursor:default}
+button.b:focus-visible{outline:2px solid var(--ochre);outline-offset:2px}
+.ledger{margin-top:12px;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px}
+@media (max-width:760px){.ledger{grid-template-columns:minmax(0,1fr)}}
+.phase{font-size:13px;min-height:42px}
+.phase b{color:var(--risk)}
+.progress{height:6px;background:var(--tint);border-radius:3px;overflow:hidden;margin:6px 0 10px}
+.progress div{height:100%;background:var(--risk);width:0}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{text-align:left;font-size:11.5px;letter-spacing:.03em;color:var(--muted);font-weight:700;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:bottom}
+td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.n,th.n{text-align:right;font-family:var(--f-data);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.tot td{font-weight:700;border-top:2px solid var(--ink);border-bottom:0}
+.tscroll{overflow-x:auto}
+.tscroll table{min-width:560px}
+.bars .row{display:grid;grid-template-columns:minmax(110px,230px) minmax(0,1fr) 104px;gap:10px;align-items:center;margin:7px 0;font-size:13px}
+@media (max-width:560px){.bars .row{grid-template-columns:96px minmax(0,1fr) 82px;font-size:12px}}
+.track{background:var(--tint);border-radius:3px;height:14px;overflow:hidden}
+.bar{height:100%;border-radius:3px;background:var(--petrol-2)}
+.bar.own{background:var(--ochre)}.bar.bad{background:var(--risk)}.bar.ok{background:var(--ok)}
+.val{font-family:var(--f-data);font-variant-numeric:tabular-nums;text-align:right;font-size:12.5px}
+.split{display:flex;height:26px;border-radius:4px;overflow:hidden;margin:6px 0}
+.split div{display:flex;align-items:center;padding:0 8px;font-size:12px;color:var(--on-strong);white-space:nowrap;overflow:hidden}
+canvas{width:100%;display:block}
+.callout{background:var(--tint-2);border:1px solid var(--line);border-left:3px solid var(--petrol);padding:10px 12px;border-radius:0 5px 5px 0;font-size:13px;margin-top:10px}
+/* panel lateral */
+aside{min-width:0}
+aside .card{position:sticky;top:96px}
+@media (max-width:1060px){aside .card{position:static}}
+.ctl{margin:12px 0}
+.ctl label{display:flex;justify-content:space-between;gap:8px;font-size:12.5px}
+.ctl label b{font-family:var(--f-data);font-weight:500;color:var(--petrol)}
+.ctl input[type=range]{width:100%;accent-color:var(--petrol)}
+.ctl .h{font-size:11px;color:var(--muted)}
+.sw{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:start;margin:9px 0;font-size:12.5px}
+.sw input{margin-top:3px;accent-color:var(--petrol)}
+.sw small{display:block;color:var(--muted)}
+.where{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.where.r{color:var(--ochre)}.where.d{color:var(--petrol-2)}
+hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+input.cost{width:110px;font:inherit;font-family:var(--f-data);font-size:12.5px;padding:4px 6px;border:1px solid var(--line);border-radius:4px;background:var(--paper);color:var(--ink)}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px}
+.pill.y{background:var(--risk-soft);color:var(--risk)}.pill.n{background:var(--tint);color:var(--petrol)}
+footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+footer p{max-width:none}
+[hidden]{display:none!important}
+.hdr-actions{display:flex;flex-wrap:wrap;gap:8px}
+.hbtn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:5px;padding:7px 12px;cursor:pointer;text-decoration:none;display:inline-block}
+.hbtn:hover{border-color:var(--petrol);color:var(--petrol)}
+.hbtn.pri{background:var(--petrol);border-color:var(--petrol);color:var(--on-strong)}
+.hbtn:focus-visible{outline:2px solid var(--ochre);outline-offset:2px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:1100px){.grid3{grid-template-columns:minmax(0,1fr)}}
+.kpi .v.sm{font-size:15px}
+</style>
+</head>
+<body>
+
+<div class="shell">
+<header class="top">
+  <div>
+    <div class="kicker">Demo de cuantificación · Safe-U · octubre de 2026</div>
+    <h1>Riesgo de dependencias en el Estado: qué pasa cuando cae el nodo de identidad</h1>
+    <p class="lead">Simulación FAIR de un nodo raíz del Estado (el servicio de validación de identidad del RENAPER) y de los sectores que dependen de él, en tres escenarios: caída del servicio, exposición masiva de datos y suplantación de identidad. Muestra cuánto se pierde, quién lo pierde, cómo se agrega sin errores y dónde rinde más cada peso invertido.</p>
+  </div>
+  <div class="hdr-actions"><a class="hbtn" href="index.html">Leer el informe</a><button class="hbtn" id="themeBtn" type="button">Modo oscuro</button></div>
+</header>
+<div class="disclaimer"><b>Ejemplo ilustrativo.</b> Los parámetros son supuestos declarados del informe (sección 5) y no describen el riesgo real del RENAPER ni de ningún organismo. Los de bancos, fraude y ciudadanos no tienen fuente pública y son, justamente, los datos que habría que pedirle al Estado.</div>
+
+<div class="kpis" aria-live="polite">
+  <div class="kpi"><div class="l">Pérdida esperada anual</div><div class="v" id="kALE">…</div><div class="d" id="dALE"></div></div>
+  <div class="kpi"><div class="l">VaR 99% (1 año en 100)</div><div class="v" id="kVaR">…</div><div class="d" id="dVaR"></div></div>
+  <div class="kpi"><div class="l">TVaR 99% (cola)</div><div class="v" id="kTVaR">…</div><div class="d" id="dTVaR"></div></div>
+  <div class="kpi"><div class="l">Pérdida transferida</div><div class="v" id="kRatio">…</div><div class="d">veces la pérdida propia</div></div>
+  <div class="kpi"><div class="l">Pérdida propia del RENAPER</div><div class="v" id="kOwn">…</div><div class="d">por año, en promedio</div></div>
+  <div class="kpi"><div class="l">P(evento en el año)</div><div class="v sm" id="kP">…</div><div class="d">escenarios A · B · C</div></div>
+</div>
+
+<div class="layout">
+<div>
+  <div class="tabs" role="tablist" aria-label="Etapas del análisis">
+    <button class="tab" role="tab" id="t-esc" aria-controls="p-esc" aria-selected="false"><span class="i">01</span>Escenarios</button>
+    <button class="tab" role="tab" id="t-map" aria-controls="p-map" aria-selected="true"><span class="i">02</span>Propagación</button>
+    <button class="tab" role="tab" id="t-exp" aria-controls="p-exp" aria-selected="false"><span class="i">03</span>Exposición del Estado</button>
+    <button class="tab" role="tab" id="t-agg" aria-controls="p-agg" aria-selected="false"><span class="i">04</span>Cómo agregar</button>
+    <button class="tab" role="tab" id="t-inv" aria-controls="p-inv" aria-selected="false"><span class="i">05</span>Dónde invertir</button>
+    <button class="tab" role="tab" id="t-sen" aria-controls="p-sen" aria-selected="false"><span class="i">06</span>Supuestos y sensibilidad</button>
+  </div>
+
+  <!-- 01 Escenarios -->
+  <div class="panel" role="tabpanel" id="p-esc" aria-labelledby="t-esc" hidden>
+    <div class="card">
+      <h2>Tres maneras de romperse un nodo de identidad</h2>
+      <p class="muted">Un nodo de identidad puede fallar en cada una de las tres propiedades de la información: deja de estar disponible (A), sus datos se exponen (B) o certifica a quien no es (C). Cada una produce un daño de forma distinta. Cada escenario se descompone en el árbol FAIR: cuántas veces por año termina en pérdida y cuánto se pierde cada vez. Cada hoja indica de dónde sale el número y quién lo estimaría dentro del Estado.</p>
+    </div>
+    <div class="grid3" style="margin-top:14px">
+      <div class="card">
+        <h3>Escenario A · Indisponibilidad del servicio de validación</h3>
+        <p class="small muted">Ransomware, falla de proveedor o denegación de servicio: los consumidores se quedan sin validación remota de identidad durante días.</p>
+        <div class="tree">
+          <div class="tnode root"><b>Pérdida anual por caídas del servicio</b><span class="s">Frecuencia × magnitud por evento</span></div>
+          <div class="tbranch">
+            <div class="tnode"><b>Frecuencia</b><span class="s">0,15 caídas significativas por año</span><br><span class="chip c-src">IRIS 2025 · 10,9%</span><span class="chip c-who">CNC + RENAPER</span></div>
+            <div class="tnode"><b>Duración</b><span class="s">mediana 1,5 días; p95 10; tope 30</span><br><span class="chip c-src">casos 2016, 2022, 2023</span><span class="chip c-who">BIA, Disp. CNC 1/2026</span></div>
+          </div>
+          <div class="tleaves">
+            <div class="tnode"><b>Pérdida propia del RENAPER</b><span class="s">respuesta y reemplazo · mediana USD 0,5 M</span> <span class="chip c-src">bajo Sophos 2024</span></div>
+            <div class="tnode"><b>Bancos y fintech, por día</b><span class="s">altas y operaciones demoradas · mediana USD 0,25 M</span> <span class="chip c-nos">sin fuente</span><span class="chip c-who">BCRA</span></div>
+            <div class="tnode"><b>Trámites digitales, por día</b><span class="s">personas × horas × valor del tiempo · mediana USD 0,2 M</span> <span class="chip c-nos">supuesto</span><span class="chip c-who">JGM Innovación</span></div>
+            <div class="tnode"><b>Organismos dependientes, por día</b><span class="s">atención de reemplazo · mediana USD 0,05 M</span> <span class="chip c-nos">supuesto</span><span class="chip c-who">cada organismo</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Escenario B · Exposición masiva de datos de identidad</h3>
+        <p class="small muted">Una credencial de un organismo consumidor, o un acceso comprometido, permite extraer datos en volumen. Es el vector del incidente de 2021: el daño cae afuera y dura años.</p>
+        <div class="tree">
+          <div class="tnode root"><b>Pérdida anual por exposiciones masivas</b><span class="s">Frecuencia × magnitud por evento</span></div>
+          <div class="tbranch">
+            <div class="tnode"><b>Frecuencia</b><span class="s">0,10 por año</span><br><span class="chip c-src">1 evento confirmado en 10 años</span><span class="chip c-who">CNC + AAIP</span></div>
+            <div class="tnode"><b>Volumen explotado</b><span class="s">mediana 5.000 identidades; p95 50.000</span><br><span class="chip c-nos">sin fuente</span><span class="chip c-who">BCRA</span></div>
+          </div>
+          <div class="tleaves">
+            <div class="tnode"><b>Pérdida propia del RENAPER</b><span class="s">respuesta, forense, rediseño · mediana USD 3,3 M</span> <span class="chip c-src">IBM «Public» × región</span></div>
+            <div class="tnode"><b>Fraude con identidad</b><span class="s">identidades × USD 1.000 de mediana · reparto banco/ciudadano 50/50</span> <span class="chip c-nos">sin fuente</span><span class="chip c-who">BCRA</span></div>
+            <div class="tnode"><b>Remediación del ciudadano</b><span class="s">mediana 100.000 renovaciones de DNI × USD 20</span> <span class="chip c-nos">supuesto</span><span class="chip c-who">RENAPER</span></div>
+            <div class="tnode"><b>Justicia</b><span class="s">habeas data y demandas · mediana USD 0,2 M</span> <span class="chip c-src">antecedente «Palazzi»</span><span class="chip c-who">Poder Judicial</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Escenario C · Validaciones falsas por suplantación de identidad</h3>
+        <p class="small muted">El servicio acepta como legítima una identidad suplantada con fotos o videos generados con IA (deepfakes) o con ataques a la prueba de vida. No se cae ni se roba nada: certifica a quien no es, hasta que alguien lo detecta.</p>
+        <div class="tree">
+          <div class="tnode root"><b>Pérdida anual por suplantaciones</b><span class="s">Frecuencia × magnitud por campaña</span></div>
+          <div class="tbranch">
+            <div class="tnode"><b>Frecuencia</b><span class="s">0,20 campañas significativas por año</span><br><span class="chip c-nos">sin fuente</span><span class="chip c-who">RENAPER + BCRA</span></div>
+            <div class="tnode"><b>Días hasta detectarla</b><span class="s">mediana 20; p95 90; tope 180</span><br><span class="chip c-nos">sin fuente</span><span class="chip c-who">RENAPER + bancos</span></div>
+          </div>
+          <div class="tleaves">
+            <div class="tnode"><b>Validaciones fraudulentas aceptadas</b><span class="s">mediana 30 por día; p95 150</span> <span class="chip c-nos">sin fuente</span><span class="chip c-who">BCRA</span></div>
+            <div class="tnode"><b>Fraude con identidad suplantada</b><span class="s">validaciones × USD 1.000 de mediana · reparto banco/ciudadano</span> <span class="chip c-nos">sin fuente</span><span class="chip c-who">BCRA</span></div>
+            <div class="tnode"><b>Pérdida propia del RENAPER</b><span class="s">respuesta, revisión de validaciones, ajuste de la prueba de vida · mediana USD 0,3 M</span> <span class="chip c-nos">supuesto</span></div>
+            <div class="tnode"><b>Justicia</b><span class="s">denuncias de los suplantados · mediana USD 0,1 M</span> <span class="chip c-nos">supuesto</span><span class="chip c-who">Poder Judicial</span></div>
+          </div>
+        </div>
+        <p class="small muted" style="margin-top:8px">Contexto: IBM 2026 informa que las suplantaciones por deepfake son el 45% de los ataques con IA maliciosa. No hay datos de este vector contra servicios de identidad estatales: todas las hojas son supuestos a reemplazar en el piloto.</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h3>Por qué el RENAPER como ejemplo</h3>
+      <p class="small">Es la raíz de confianza más clara del Estado: lo consumen bancos, fintech, organismos y trámites digitales, y su dependencia con el sistema financiero está escrita en documentos del BCRA (Boletín CIMPRA 533). Su incidente de 2021 muestra el vector que un organismo aislado no ve: el acceso entró por la credencial de un consumidor. La pregunta es cuánto pierde el Estado en su conjunto por un evento en ese nodo, quién lo pierde y qué inversión, en qué lugar, lo reduce más.</p>
+    </div>
+  </div>
+
+  <!-- 02 Propagación -->
+  <div class="panel" role="tabpanel" id="p-map" aria-labelledby="t-map">
+    <div class="card">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline">
+        <h2 id="mapTitle">Mapa de propagación: pérdida esperada anual</h2>
+        <span class="small muted" id="mapHint">El grosor de cada flecha es la pérdida anual que el nodo transfiere a ese sector.</span>
+      </div>
+      <div class="graphwrap"><svg id="grafo" viewBox="0 0 780 470" width="100%" role="img" aria-label="Grafo de dependencias del nodo de identidad"></svg></div>
+      <div class="btnrow">
+        <button class="b" id="bA">Simular una caída del servicio</button>
+        <button class="b" id="bC">Simular una exposición masiva</button>
+        <button class="b" id="bI">Simular una suplantación de identidad</button>
+        <button class="b sec" id="bBack" hidden>Volver a la vista anual</button>
+      </div>
+      <div class="ledger" id="ledger" hidden>
+        <div>
+          <div class="phase" id="phase"></div>
+          <div class="progress"><div id="prog"></div></div>
+          <p class="small muted" id="evNote"></p>
+        </div>
+        <div class="tscroll"><table>
+          <thead><tr><th>Quién pierde</th><th class="n">En este evento</th></tr></thead>
+          <tbody id="ledBody"></tbody>
+        </table></div>
+      </div>
+    </div>
+    <div class="callout">Cómo leerlo: la flecha punteada que entra al RENAPER son las credenciales que el nodo entrega a sus consumidores. No es una dependencia sino superficie de ataque: en 2021 la exposición entró por ahí. Las flechas que salen son las pérdidas que el nodo traslada.</div>
+  </div>
+
+  <!-- 03 Exposición -->
+  <div class="panel" role="tabpanel" id="p-exp" aria-labelledby="t-exp" hidden>
+    <div class="card">
+      <h2>Exposición del Estado por el nodo de identidad</h2>
+      <p class="muted">Las métricas se calculan sobre la suma de todos los sectores, año por año, en 100.000 años simulados. Nunca se suman los VaR de cada sector.</p>
+      <h3 style="margin-top:12px">Pérdida propia frente a transferida</h3>
+      <div class="split" id="split"></div>
+      <div class="tscroll" style="margin-top:12px"><table>
+        <thead><tr><th>Sector</th><th class="n">Pérdida esperada</th><th class="n">% del total</th><th class="n">VaR 95%</th><th class="n">TVaR 95%</th><th class="n">VaR 99%</th></tr></thead>
+        <tbody id="compBody"></tbody>
+      </table></div>
+      <p class="small muted" style="margin-top:8px">Como los eventos son raros, el VaR 95% de algunos sectores es bajo o cero: en la mayoría de los años no pasa nada. Para un nodo así hay que mirar la cola y la curva completa.</p>
+    </div>
+    <div class="card">
+      <h3>Curva de excedencia de pérdidas del Estado</h3>
+      <canvas id="lec" height="300" aria-label="Curva de excedencia"></canvas>
+      <p class="small muted" id="lecNote">Probabilidad anual de que la pérdida del Estado supere cada monto, en escala logarítmica. Gris: sin controles. Petróleo: con los controles elegidos.</p>
+    </div>
+  </div>
+
+  <!-- 04 Agregación -->
+  <div class="panel" role="tabpanel" id="p-agg" aria-labelledby="t-agg" hidden>
+    <div class="card">
+      <h2>Cómo se agregan los organismos sin equivocarse</h2>
+      <p class="muted">El evento en el nodo raíz golpea a todos sus dependientes el mismo día. Modelarlo una sola vez y repartirlo es lo correcto. Estos son los tres errores más comunes, medidos sobre la misma simulación.</p>
+    </div>
+    <div class="grid2" style="margin-top:14px">
+      <div class="card"><h3>Error 1 · Tratar a los dependientes como independientes</h3><div class="bars" id="agg1"></div><p class="small" id="agg1t"></p></div>
+      <div class="card"><h3>Error 2 · Sumar los VaR de cada sector</h3><div class="bars" id="agg2"></div><p class="small" id="agg2t"></p></div>
+    </div>
+    <div class="card" style="margin-top:14px"><h3>Error 3 · Contar la pérdida transferida dos veces</h3><div class="bars" id="agg3"></div><p class="small" id="agg3t"></p></div>
+    <div class="callout">Las cuatro reglas: el evento del nodo se simula una vez; VaR y TVaR se calculan sobre la suma año por año; donde hay evento común no se agrega además una correlación; la pérdida transferida se cuenta en el nodo o en el dependiente, nunca en los dos.</div>
+  </div>
+
+  <!-- 05 Inversión -->
+  <div class="panel" role="tabpanel" id="p-inv" aria-labelledby="t-inv" hidden>
+    <div class="card">
+      <h2>¿Dónde reduce más riesgo del Estado cada peso?</h2>
+      <p class="muted">Cada control se mide contra los mismos años simulados (números aleatorios comunes), así que la diferencia es atribuible al control. La reducción se mide sobre todo el Estado, no solo sobre quien paga el control. El informe no tiene costos de controles: cargalos para ver el retorno.</p>
+      <div class="tscroll" style="margin-top:10px"><table>
+        <thead><tr><th>Control</th><th>Dónde</th><th class="n">Baja la pérdida esperada</th><th class="n">%</th><th class="n">Baja el TVaR 95%</th><th class="n">Costo anual (USD)</th><th class="n">Retorno</th></tr></thead>
+        <tbody id="invBody"></tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <h3>Reducción de la pérdida esperada del Estado</h3>
+      <div class="bars" id="invBars"></div>
+      <p class="small muted">Ocre: controles en el RENAPER. Petróleo: controles en un dependiente.</p>
+    </div>
+    <div class="callout" id="invRead"></div>
+  </div>
+
+  <!-- 06 Sensibilidad -->
+  <div class="panel" role="tabpanel" id="p-sen" aria-labelledby="t-sen" hidden>
+    <div class="card">
+      <h2>¿Qué supuestos cambian la conclusión?</h2>
+      <p class="muted">Un análisis honesto muestra qué supuesto, si estuviera mal, invertiría la recomendación. Cada fila lleva un supuesto a la mitad y al doble, con todo lo demás fijo, y mide la pérdida esperada y qué control quedaría primero. Son 72 simulaciones de 100.000 años: tarda unos segundos.</p>
+      <button class="b" id="bSens">Correr el análisis de sensibilidad</button>
+      <span class="small muted" id="sensStatus" style="margin-left:8px"></span>
+    </div>
+    <div class="card" id="sensOut" hidden>
+      <h3>Impacto sobre la pérdida esperada del Estado (supuesto × 0,5 y × 2)</h3>
+      <canvas id="tornado" height="260" aria-label="Gráfico de tornado"></canvas>
+      <h3 style="margin-top:14px">¿Cambia el control que conviene?</h3>
+      <div class="tscroll"><table>
+        <thead><tr><th>Supuesto</th><th>Con la mitad</th><th>Con el doble</th><th>¿Antifraude bancario le gana a la redundancia?</th></tr></thead>
+        <tbody id="sensBody"></tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <h3>Tabla de supuestos</h3>
+      <div class="tscroll"><table>
+        <thead><tr><th>Parámetro</th><th>Valor</th><th>Origen</th></tr></thead>
+        <tbody>
+          <tr><td>Frecuencia escenario A</td><td>0,15 por año</td><td>Por encima del 10,9% anual del sector público (Cyentia IRIS 2025). Supuesto</td></tr>
+          <tr><td>Duración de la caída</td><td>mediana 1,5 días; p95 10; tope 30</td><td>CSJN 2016 (2 días), Colombia 2023 (5 días hábiles), Córdoba 2022 (al menos 7). Supuesto</td></tr>
+          <tr><td>Pérdida propia por caída</td><td>mediana USD 0,5 M; p95 2 M</td><td>Por debajo de Sophos 2024 (USD 2,83 M). Supuesto</td></tr>
+          <tr><td>Bancos y fintech por día</td><td>mediana USD 0,25 M; p95 0,6 M</td><td>Sin fuente. Dato a pedir al BCRA</td></tr>
+          <tr><td>Trámites por día</td><td>mediana USD 0,2 M; p95 0,5 M</td><td>Ej.: 50.000 personas × 2 h × USD 2/h. Supuesto</td></tr>
+          <tr><td>Organismos por día</td><td>mediana USD 0,05 M; p95 0,15 M</td><td>Supuesto. BIA de cada organismo</td></tr>
+          <tr><td>Frecuencia escenario B</td><td>0,10 por año</td><td>Un evento confirmado (2021) en una década. Supuesto</td></tr>
+          <tr><td>Pérdida propia por exposición</td><td>mediana USD 3,3 M; p95 12 M</td><td>IBM CODB 2026 «Public» (USD 3,50 M) × ajuste regional. Piso: IBM excluye megabrechas</td></tr>
+          <tr><td>Identidades explotadas</td><td>mediana 5.000; p95 50.000</td><td>Sin fuente. Dato a pedir al BCRA</td></tr>
+          <tr><td>Pérdida por fraude</td><td>mediana USD 1.000; p95 3.000</td><td>Sin fuente</td></tr>
+          <tr><td>Renovaciones de DNI</td><td>mediana 100.000; p95 500.000; USD 20 c/u</td><td>Supuesto. Dato del RENAPER</td></tr>
+          <tr><td>Justicia por evento B</td><td>mediana USD 0,2 M; p95 1 M</td><td>Supuesto. Antecedente: habeas data «Palazzi» (2025)</td></tr>
+          <tr><td>Frecuencia escenario C</td><td>0,20 campañas por año</td><td>Sin fuente. Dato a pedir al RENAPER y al BCRA</td></tr>
+          <tr><td>Días hasta detectar la campaña</td><td>mediana 20; p95 90; tope 180</td><td>Sin fuente</td></tr>
+          <tr><td>Validaciones fraudulentas por día</td><td>mediana 30; p95 150</td><td>Sin fuente. Dato a pedir al BCRA</td></tr>
+          <tr><td>Pérdida por validación fraudulenta</td><td>mediana USD 1.000; p95 3.000</td><td>La misma del escenario B. Sin fuente</td></tr>
+          <tr><td>Pérdida propia por suplantación</td><td>mediana USD 0,3 M; p95 1,5 M</td><td>Supuesto</td></tr>
+          <tr><td>Justicia por campaña</td><td>mediana USD 0,1 M; p95 0,5 M</td><td>Supuesto</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<aside>
+  <div class="card">
+    <h3>Supuestos de frecuencia</h3>
+    <div class="ctl"><label for="lamA"><span>Caídas del servicio por año (λ A)</span><b id="vA"></b></label><input id="lamA" type="range" min="0.02" max="0.6" step="0.01" value="0.15"></div>
+    <div class="ctl"><label for="lamC"><span>Exposiciones masivas por año (λ B)</span><b id="vC"></b></label><input id="lamC" type="range" min="0.02" max="0.4" step="0.01" value="0.10"></div>
+    <div class="ctl"><label for="lamI"><span>Campañas de suplantación por año (λ C)</span><b id="vI"></b></label><input id="lamI" type="range" min="0.02" max="0.6" step="0.01" value="0.20"></div>
+    <h3 style="margin-top:14px">Supuestos de magnitud</h3>
+    <div class="ctl"><label for="durM"><span>Duración de la caída</span><b id="vDur"></b></label><input id="durM" type="range" min="0.25" max="4" step="0.05" value="1"><div class="h">Multiplica la mediana de 1,5 días</div></div>
+    <div class="ctl"><label for="bankM"><span>Pérdida bancaria por día</span><b id="vBank"></b></label><input id="bankM" type="range" min="0.25" max="4" step="0.05" value="1"><div class="h">Multiplica la mediana de USD 0,25 M</div></div>
+    <div class="ctl"><label for="idM"><span>Identidades explotadas</span><b id="vId"></b></label><input id="idM" type="range" min="0.25" max="4" step="0.05" value="1"><div class="h">Multiplica la mediana de 5.000</div></div>
+    <div class="ctl"><label for="share"><span>Fraude: banco / ciudadano</span><b id="vS"></b></label><input id="share" type="range" min="0" max="1" step="0.05" value="0.5"></div>
+    <button class="b sec" id="bReset" style="width:100%">Volver a los valores del informe</button>
+    <hr>
+    <h3>Controles</h3>
+    <div class="sw"><input type="checkbox" id="c1"><label for="c1"><span class="where r">En el RENAPER</span> Controles de consumo<small>Respuestas verdadero/falso, límites por consumidor, revisión de credenciales. −40% frecuencia de exposición</small></label></div>
+    <div class="sw"><input type="checkbox" id="c2"><label for="c2"><span class="where r">En el RENAPER</span> Redundancia del servicio<small>−50% duración de la caída</small></label></div>
+    <div class="sw"><input type="checkbox" id="c5"><label for="c5"><span class="where r">En el RENAPER</span> Prueba de vida reforzada<small>Detección de deepfakes y ataques de presentación. −50% validaciones fraudulentas aceptadas</small></label></div>
+    <div class="sw"><input type="checkbox" id="c3"><label for="c3"><span class="where d">En los bancos</span> Validación alternativa<small>−50% pérdida bancaria diaria durante la caída</small></label></div>
+    <div class="sw"><input type="checkbox" id="c4"><label for="c4"><span class="where d">En los bancos</span> Antifraude<small>−30% fraude con identidad expuesta o suplantada</small></label></div>
+    <p class="small muted" id="calcState" style="margin:8px 0 0">Calculando…</p>
+  </div>
+</aside>
+</div>
+
+<footer>
+  <p>Método: frecuencias Poisson y severidades lognormales definidas por mediana y percentil 95; 100.000 años simulados con semilla fija; TVaR como media de las pérdidas iguales o mayores al VaR. El evento del nodo raíz se sortea una vez y cada sector recibe su pérdida a partir de la misma duración o del mismo volumen expuesto; el fraude se cuenta una sola vez. La simulación corre en el navegador con un generador aleatorio distinto del usado en el informe, así que las cifras pueden diferir levemente de las publicadas allí (USD 3,23 M de pérdida esperada). Fuentes de los anclajes: IBM Cost of a Data Breach 2026, Sophos State of Ransomware in State and Local Government 2024, Cyentia IRIS 2025, BCRA Boletín CIMPRA 533, Disposición CNC 1/2026. Contexto del escenario C: IBM Cost of a Data Breach 2026, Fig. 21.</p>
+  <p>Joaquín Galermes · Safe-U · octubre de 2026.</p>
+</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+var N = 100000, SEED = 42, LMAXA = 0.6, LMAXC = 0.4, LMAXI = 0.6;
+var COMP = [
+  {k:"ren", n:"RENAPER (pérdida propia)", s:"RENAPER", own:true},
+  {k:"ban", n:"Bancos y fintech", s:"Bancos y fintech"},
+  {k:"ciu", n:"Ciudadanos: fraude y remediación", s:"Ciudadanos"},
+  {k:"tra", n:"Trámites digitales", s:"Trámites digitales"},
+  {k:"org", n:"Organismos dependientes", s:"Organismos"},
+  {k:"jus", n:"Justicia", s:"Justicia"}
+];
+var DEFAULTS = {lamA:0.15, lamC:0.10, lamI:0.20, durM:1, bankM:1, idM:1, share:0.5};
+var CONTROLS = [
+  {id:"c1", n:"Controles de consumo en el RENAPER", w:"RENAPER", root:true},
+  {id:"c2", n:"Redundancia del servicio de validación", w:"RENAPER", root:true},
+  {id:"c3", n:"Validación alternativa en bancos", w:"Bancos", root:false},
+  {id:"c4", n:"Antifraude bancario", w:"Bancos", root:false},
+  {id:"c5", n:"Prueba de vida reforzada", w:"RENAPER", root:true}
+];
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function makeRng(seed){
+  var u = mulberry32(seed), spare = null;
+  function norm(){if (spare !== null){var s = spare; spare = null; return s;} var a = u() || 1e-12, b = u(), r = Math.sqrt(-2*Math.log(a)); spare = r*Math.sin(2*Math.PI*b); return r*Math.cos(2*Math.PI*b);}
+  function ln(med, p95){var s = Math.log(p95/med)/1.645; return Math.exp(Math.log(med) + s*norm());}
+  function pois(l){var L = Math.exp(-l), k = 0, p = 1; do {k++; p *= u();} while (p > L); return k-1;}
+  return {u:u, ln:ln, pois:pois};
+}
+
+function simulate(p, meanOnly){
+  var r = makeRng(SEED);
+  var a = {}; COMP.forEach(function(c){a[c.k] = new Float64Array(N);});
+  var evA = 0, evC = 0, evI = 0, live = p.c5 ? 0.5 : 1;
+  var lamC = p.lamC*(p.c1 ? 0.6 : 1), red = p.c2 ? 0.5 : 1, alt = p.c3 ? 0.5 : 1, af = p.c4 ? 0.7 : 1;
+  for (var i = 0; i < N; i++){
+    var kA = r.pois(LMAXA), hitA = false;
+    for (var j = 0; j < kA; j++){
+      var keep = r.u() < p.lamA/LMAXA;
+      var D = Math.min(r.ln(1.5,10)*p.durM, 30), own = r.ln(0.5e6,2e6), b = r.ln(0.25e6,0.6e6), c = r.ln(0.2e6,0.5e6), o = r.ln(0.05e6,0.15e6);
+      if (keep){var D2 = D*red; a.ren[i] += own; a.ban[i] += D2*b*p.bankM*alt; a.tra[i] += D2*c; a.org[i] += D2*o; hitA = true;}
+    }
+    var kC = r.pois(LMAXC), hitC = false;
+    for (j = 0; j < kC; j++){
+      var keepC = r.u() < lamC/LMAXC;
+      var idn = r.ln(5000,50000)*p.idM, fl = r.ln(1000,3000), ownC = r.ln(3.3e6,12e6), dni = r.ln(1e5,5e5), ju = r.ln(0.2e6,1e6);
+      if (keepC){var f = idn*fl*af; a.ren[i] += ownC; a.ban[i] += f*p.share; a.ciu[i] += f*(1-p.share) + dni*20; a.jus[i] += ju; hitC = true;}
+    }
+    var kI = r.pois(LMAXI), hitI = false;
+    for (j = 0; j < kI; j++){
+      var keepI = r.u() < p.lamI/LMAXI;
+      var dias = Math.min(r.ln(20,90), 180), vd = r.ln(30,150), fli = r.ln(1000,3000), ownI = r.ln(0.3e6,1.5e6), juI = r.ln(0.1e6,0.5e6);
+      if (keepI){var fi = dias*vd*live*fli*af; a.ren[i] += ownI; a.ban[i] += fi*p.share; a.ciu[i] += fi*(1-p.share); a.jus[i] += juI; hitI = true;}
+    }
+    if (hitA) evA++; if (hitC) evC++; if (hitI) evI++;
+  }
+  var tot = new Float64Array(N);
+  for (i = 0; i < N; i++){var s = 0; for (var q = 0; q < COMP.length; q++) s += a[COMP[q].k][i]; tot[i] = s;}
+  return {a:a, tot:tot, pA:evA/N, pC:evC/N, pI:evI/N};
+}
+function mean(x){var s = 0; for (var i = 0; i < x.length; i++) s += x[i]; return s/x.length;}
+function srt(x){return Float64Array.from(x).sort();}
+function qt(s, al){return s[Math.min(s.length-1, Math.floor(al*(s.length-1)))];}
+function tvar(s, al){var v = qt(s,al), sum = 0, n = 0; for (var i = s.length-1; i >= 0 && s[i] >= v; i--){sum += s[i]; n++;} return n ? sum/n : 0;}
+function stats(x){var s = srt(x); return {ale:mean(x), v95:qt(s,.95), t95:tvar(s,.95), v99:qt(s,.99), t99:tvar(s,.99), s:s};}
+function shuffled(x, r){var b = Float64Array.from(x); for (var i = b.length-1; i > 0; i--){var j = Math.floor(r.u()*(i+1)); var t = b[i]; b[i] = b[j]; b[j] = t;} return b;}
+
+function fmt(x){
+  if (!isFinite(x)) return "–";
+  var a = Math.abs(x);
+  if (a >= 1e6) return "USD " + (x/1e6).toLocaleString("es-AR",{minimumFractionDigits:2, maximumFractionDigits:2}) + " M";
+  if (a >= 1e3) return "USD " + Math.round(x/1e3).toLocaleString("es-AR") + " mil";
+  return "USD " + Math.round(x).toLocaleString("es-AR");
+}
+function pctS(x, d){return (x*100).toLocaleString("es-AR",{maximumFractionDigits:d===undefined?1:d}) + "%";}
+function chg(a, b){var d = (a-b)/b; return (d > 0 ? "+" : "") + pctS(d) ;}
+var $ = function(id){return document.getElementById(id);};
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+
+/* ---------- pestañas ---------- */
+var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
+function selectTab(t){
+  tabs.forEach(function(x){var on = x === t; x.setAttribute("aria-selected", on ? "true" : "false"); x.tabIndex = on ? 0 : -1; $(x.getAttribute("aria-controls")).hidden = !on;});
+  if (t.id === "t-exp" && state) drawLEC();
+  if (t.id === "t-sen" && sensData) drawTornado();
+}
+tabs.forEach(function(t, i){
+  t.addEventListener("click", function(){selectTab(t);});
+  t.addEventListener("keydown", function(e){
+    if (e.key === "ArrowRight" || e.key === "ArrowLeft"){var n = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length-1)) % tabs.length]; n.focus(); selectTab(n);}
+  });
+});
+selectTab($("t-map"));
+
+/* ---------- grafo ---------- */
+var NS = "http://www.w3.org/2000/svg", svg = $("grafo"), G = {edges:{}, val:{}, ring:{}};
+function el(tag, at, par, txt){var e = document.createElementNS(NS, tag); for (var k in at) e.setAttribute(k, at[k]); if (txt !== undefined) e.textContent = txt; par.appendChild(e); return e;}
+var CX = 390, CY = 235;
+var POS = {jus:{x:390,y:58}, ban:{x:660,y:118}, ciu:{x:660,y:352}, tra:{x:390,y:412}, org:{x:120,y:352}};
+var VEC = {x:120, y:118};
+function buildGraph(){
+  svg.innerHTML = "";
+  var defs = el("defs", {}, svg);
+  var mk = el("marker", {id:"arr", viewBox:"0 0 10 10", refX:"8", refY:"5", markerWidth:"14", markerHeight:"14", markerUnits:"userSpaceOnUse", orient:"auto"}, defs);
+  el("path", {d:"M0,0 L10,5 L0,10 z", fill:css("--petrol-2")}, mk);
+  var mk2 = el("marker", {id:"arr2", viewBox:"0 0 10 10", refX:"8", refY:"5", markerWidth:"12", markerHeight:"12", markerUnits:"userSpaceOnUse", orient:"auto"}, defs);
+  el("path", {d:"M0,0 L10,5 L0,10 z", fill:css("--muted")}, mk2);
+  // anillos de referencia
+  el("circle", {cx:CX, cy:CY, r:180, fill:"none", stroke:css("--line"), "stroke-dasharray":"2 6"}, svg);
+  // vector de entrada
+  var dx = CX-VEC.x, dy = CY-VEC.y, L = Math.hypot(dx,dy);
+  el("line", {x1:VEC.x+dx/L*46, y1:VEC.y+dy/L*46, x2:CX-dx/L*62, y2:CY-dy/L*62, stroke:css("--muted"), "stroke-width":2, "stroke-dasharray":"6 5", "marker-end":"url(#arr2)"}, svg);
+  el("rect", {x:VEC.x-90, y:VEC.y-30, width:180, height:60, rx:6, fill:css("--tint-2"), stroke:css("--muted"), "stroke-dasharray":"4 3"}, svg);
+  el("text", {x:VEC.x, y:VEC.y-6, "text-anchor":"middle", "font-size":12, "font-weight":700, fill:css("--ink")}, svg, "Credenciales de");
+  el("text", {x:VEC.x, y:VEC.y+9, "text-anchor":"middle", "font-size":12, "font-weight":700, fill:css("--ink")}, svg, "organismos consumidores");
+  el("text", {x:VEC.x, y:VEC.y+46, "text-anchor":"middle", "font-size":11, fill:css("--muted")}, svg, "vía de entrada (2021)");
+  COMP.forEach(function(c){
+    if (c.own) return; var P = POS[c.k], ddx = P.x-CX, ddy = P.y-CY, LL = Math.hypot(ddx,ddy);
+    G.edges[c.k] = el("line", {x1:CX+ddx/LL*62, y1:CY+ddy/LL*62, x2:P.x-ddx/LL*52, y2:P.y-ddy/LL*52, stroke:css("--petrol-3"), "stroke-width":4, "stroke-linecap":"round", "marker-end":"url(#arr)", "class":"edge"}, svg);
+  });
+  G.ring.ren = el("circle", {cx:CX, cy:CY, r:58, fill:css("--petrol")}, svg);
+  el("text", {x:CX, y:CY-12, "text-anchor":"middle", "font-size":15, "font-weight":700, fill:css("--on-strong")}, svg, "RENAPER");
+  el("text", {x:CX, y:CY+4, "text-anchor":"middle", "font-size":10.5, fill:css("--on-strong")}, svg, "validación de identidad");
+  G.val.ren = el("text", {x:CX, y:CY+24, "text-anchor":"middle", "font-size":12.5, "font-family":"IBM Plex Mono, monospace", fill:css("--on-strong")}, svg, "");
+  COMP.forEach(function(c){
+    if (c.own) return; var P = POS[c.k];
+    G.ring[c.k] = el("circle", {cx:P.x, cy:P.y, r:48, fill:css("--paper"), stroke:css("--petrol-2"), "stroke-width":2.5}, svg);
+    var words = c.s.split(" ");
+    var lines = words.length > 1 && c.s.length > 11 ? [words.slice(0, Math.ceil(words.length/2)).join(" "), words.slice(Math.ceil(words.length/2)).join(" ")] : [c.s];
+    lines.forEach(function(t, i){el("text", {x:P.x, y:P.y - 6 + (i - (lines.length-1)/2)*14, "text-anchor":"middle", "font-size":12, "font-weight":700, fill:css("--ink")}, svg, t);});
+    G.val[c.k] = el("text", {x:P.x, y:P.y + 22, "text-anchor":"middle", "font-size":11.5, "font-family":"IBM Plex Mono, monospace", fill:css("--petrol")}, svg, "");
+  });
+}
+function paintAnnual(){
+  if (!state) return;
+  var m = state.cur.comp, mx = 0;
+  COMP.forEach(function(c){if (!c.own) mx = Math.max(mx, m[c.k]);});
+  COMP.forEach(function(c){
+    if (c.own){G.val.ren.textContent = "propia " + fmt(m.ren).replace("USD ",""); return;}
+    G.edges[c.k].setAttribute("stroke-width", (2 + 18*m[c.k]/(mx||1)).toFixed(1));
+    G.edges[c.k].classList.remove("flow");
+    G.val[c.k].textContent = fmt(m[c.k]);
+  });
+  $("mapTitle").textContent = "Mapa de propagación: pérdida esperada anual";
+  $("mapHint").textContent = "El grosor de cada flecha es la pérdida anual que el nodo transfiere a ese sector.";
+}
+
+/* ---------- incidente animado ---------- */
+var anim = null;
+function incident(kind){
+  var p = params(), r = makeRng((Date.now() ^ 0x5bd1e995) >>> 0), plan = [], note;
+  if (kind === "A"){
+    var D = Math.min(r.ln(1.5,10)*p.durM, 30)*(p.c2 ? 0.5 : 1);
+    var rate = {ban:r.ln(0.25e6,0.6e6)*p.bankM*(p.c3 ? 0.5 : 1), tra:r.ln(0.2e6,0.5e6), org:r.ln(0.05e6,0.15e6)};
+    var own = r.ln(0.5e6,2e6);
+    plan = [
+      {t0:0, t1:0.15, label:"Día 0. El servicio de validación deja de responder. El RENAPER activa la respuesta.", f:function(x){return {ren:own*x};}},
+      {t0:0.15, t1:1, label:"Sin validación: bancos sin altas digitales, trámites bloqueados y organismos con atención de reemplazo.", f:function(x){var d = D*x; return {ren:own, ban:rate.ban*d, tra:rate.tra*d, org:rate.org*d, _day:d};}}
+    ];
+    note = "Caída de " + D.toLocaleString("es-AR",{maximumFractionDigits:1}) + " días. Cada día suma pérdida en todos los dependientes a la vez: es el evento común.";
+  } else if (kind === "C") {
+    var idn = r.ln(5000,50000)*p.idM, fr = idn*r.ln(1000,3000)*(p.c4 ? 0.7 : 1), ownC = r.ln(3.3e6,12e6), dni = r.ln(1e5,5e5), ju = r.ln(0.2e6,1e6);
+    plan = [
+      {t0:0, t1:0.2, label:"Se detecta la extracción de datos por una credencial de un consumidor. Respuesta, forense y rediseño del servicio.", f:function(x){return {ren:ownC*x};}},
+      {t0:0.2, t1:0.6, label:"Fraude con " + Math.round(idn).toLocaleString("es-AR") + " identidades expuestas: cuentas y préstamos a nombre de terceros.", f:function(x){return {ren:ownC, ban:fr*p.share*x, ciu:fr*(1-p.share)*x};}},
+      {t0:0.6, t1:0.85, label:"Remediación: " + Math.round(dni).toLocaleString("es-AR") + " renovaciones de DNI a cargo de los ciudadanos.", f:function(x){return {ren:ownC, ban:fr*p.share, ciu:fr*(1-p.share) + dni*20*x};}},
+      {t0:0.85, t1:1, label:"Litigios: habeas data y demandas en la justicia.", f:function(x){return {ren:ownC, ban:fr*p.share, ciu:fr*(1-p.share) + dni*20, jus:ju*x};}}
+    ];
+    note = "Los datos expuestos no vuelven: en los casos revisados reaparecieron años después. El daño cae casi todo afuera del RENAPER.";
+  }
+  if (kind === "I"){
+    var dd = Math.min(r.ln(20,90), 180), vday = r.ln(30,150)*(p.c5 ? 0.5 : 1), loss1 = r.ln(1000,3000)*(p.c4 ? 0.7 : 1), ownI = r.ln(0.3e6,1.5e6), juI = r.ln(0.1e6,0.5e6), fI = dd*vday*loss1;
+    plan = [
+      {t0:0, t1:0.75, label:"La validación acepta identidades suplantadas. Cada día se abren cuentas y se toman créditos a nombre de terceros, y nadie lo detecta todavía.", f:function(x){var d = dd*x; return {ban:fI*p.share*x, ciu:fI*(1-p.share)*x, _day:d};}},
+      {t0:0.75, t1:0.92, label:"Se detecta la campaña. El RENAPER revisa las validaciones aceptadas y ajusta la prueba de vida.", f:function(x){return {ban:fI*p.share, ciu:fI*(1-p.share), ren:ownI*x, _day:dd};}},
+      {t0:0.92, t1:1, label:"Los suplantados denuncian y reclaman en la justicia.", f:function(x){return {ban:fI*p.share, ciu:fI*(1-p.share), ren:ownI, jus:juI*x, _day:dd};}}
+    ];
+    note = "Campaña de " + Math.round(dd) + " días con unas " + Math.round(vday) + " validaciones fraudulentas por día. Mientras no se detecta, el daño crece en bancos y ciudadanos sin que el RENAPER registre un incidente.";
+  }
+  if (anim) cancelAnimationFrame(anim.raf);
+  $("ledger").hidden = false; $("bBack").hidden = false; $("evNote").textContent = note;
+  $("mapTitle").textContent = kind === "A" ? "Incidente simulado: caída del servicio de validación" : kind === "C" ? "Incidente simulado: exposición masiva de identidad" : "Incidente simulado: suplantación de identidad";
+  $("mapHint").textContent = "Una sola realización al azar del escenario, con los supuestos y controles actuales.";
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches, T = reduce ? 1 : 7000, start = performance.now();
+  anim = {};
+  function frame(now){
+    var x = Math.min(1, (now - start)/T), cur = {}, lab = "", day = null;
+    for (var i = 0; i < plan.length; i++){var ph = plan[i]; if (x >= ph.t0){var lx = Math.min(1, (x - ph.t0)/(ph.t1 - ph.t0)); cur = ph.f(lx); lab = ph.label; if (cur._day !== undefined) day = cur._day;}}
+    renderLedger(cur, lab, day, x);
+    if (x < 1) anim.raf = requestAnimationFrame(frame);
+  }
+  anim.raf = requestAnimationFrame(frame);
+}
+function renderLedger(cur, lab, day, x){
+  var tot = 0; COMP.forEach(function(c){tot += cur[c.k] || 0;});
+  var out = tot - (cur.ren || 0);
+  $("phase").innerHTML = (day !== null ? "<b>Día " + day.toLocaleString("es-AR",{maximumFractionDigits:1}) + ".</b> " : "") + lab;
+  $("prog").style.width = (x*100).toFixed(1) + "%";
+  var rows = COMP.map(function(c){return "<tr><td>" + c.n + "</td><td class='n'>" + ((cur[c.k]||0) > 0 ? fmt(cur[c.k]) : "–") + "</td></tr>";}).join("");
+  rows += "<tr class='tot'><td>Total del evento</td><td class='n'>" + fmt(tot) + "</td></tr>";
+  rows += "<tr><td class='muted'>Cae fuera del RENAPER</td><td class='n'>" + (tot > 0 ? pctS(out/tot,0) : "–") + "</td></tr>";
+  $("ledBody").innerHTML = rows;
+  var mx = 0; COMP.forEach(function(c){if (!c.own) mx = Math.max(mx, cur[c.k]||0);});
+  G.val.ren.textContent = "propia " + fmt(cur.ren||0).replace("USD ","");
+  COMP.forEach(function(c){
+    if (c.own) return; var v = cur[c.k] || 0;
+    G.val[c.k].textContent = v > 0 ? fmt(v) : "sin impacto";
+    G.edges[c.k].setAttribute("stroke-width", v > 0 ? (2 + 18*v/(mx||1)).toFixed(1) : 2);
+    if (v > 0) G.edges[c.k].classList.add("flow"); else G.edges[c.k].classList.remove("flow");
+  });
+}
+$("bA").addEventListener("click", function(){incident("A");});
+$("bC").addEventListener("click", function(){incident("C");});
+$("bI").addEventListener("click", function(){incident("I");});
+$("bBack").addEventListener("click", function(){if (anim) cancelAnimationFrame(anim.raf); $("ledger").hidden = true; $("bBack").hidden = true; paintAnnual();});
+
+/* ---------- parámetros y cálculo ---------- */
+function params(){return {lamA:+$("lamA").value, lamC:+$("lamC").value, lamI:+$("lamI").value, durM:+$("durM").value, bankM:+$("bankM").value, idM:+$("idM").value, share:+$("share").value, c1:$("c1").checked, c2:$("c2").checked, c3:$("c3").checked, c4:$("c4").checked, c5:$("c5").checked};}
+function noCtrl(p){var q = {}; for (var k in p) q[k] = p[k]; q.c1 = q.c2 = q.c3 = q.c4 = q.c5 = false; return q;}
+function only(p, id){var q = noCtrl(p); q[id] = true; return q;}
+function summarize(sim){
+  var st = stats(sim.tot), comp = {}, cs = {};
+  COMP.forEach(function(c){comp[c.k] = mean(sim.a[c.k]); cs[c.k] = stats(sim.a[c.k]);});
+  return {st:st, comp:comp, cs:cs, pA:sim.pA, pC:sim.pC, pI:sim.pI, sim:sim};
+}
+var state = null, sensData = null;
+
+function update(){
+  $("calcState").textContent = "Calculando…";
+  setTimeout(function(){
+    var p = params();
+    $("vA").textContent = p.lamA.toLocaleString("es-AR",{minimumFractionDigits:2});
+    $("vC").textContent = p.lamC.toLocaleString("es-AR",{minimumFractionDigits:2});
+    $("vI").textContent = p.lamI.toLocaleString("es-AR",{minimumFractionDigits:2});
+    $("vDur").textContent = "× " + p.durM.toLocaleString("es-AR",{minimumFractionDigits:2});
+    $("vBank").textContent = "× " + p.bankM.toLocaleString("es-AR",{minimumFractionDigits:2});
+    $("vId").textContent = "× " + p.idM.toLocaleString("es-AR",{minimumFractionDigits:2});
+    $("vS").textContent = Math.round(p.share*100) + " / " + Math.round((1-p.share)*100);
+    var any = p.c1||p.c2||p.c3||p.c4||p.c5;
+    var base = summarize(simulate(noCtrl(p)));
+    var cur = any ? summarize(simulate(p)) : base;
+    var singles = {};
+    CONTROLS.forEach(function(c){var s = simulate(only(p, c.id)); var st = stats(s.tot); singles[c.id] = {ale:st.ale, t95:st.t95};});
+    state = {p:p, base:base, cur:cur, any:any, singles:singles};
+    render();
+    $("calcState").textContent = "100.000 años simulados con los supuestos actuales.";
+  }, 20);
+}
+function render(){
+  var s = state, c = s.cur, b = s.base;
+  $("kALE").textContent = fmt(c.st.ale); $("kVaR").textContent = fmt(c.st.v99); $("kTVaR").textContent = fmt(c.st.t99);
+  var tr = c.st.ale - c.comp.ren; $("kRatio").textContent = (tr/c.comp.ren).toLocaleString("es-AR",{minimumFractionDigits:1, maximumFractionDigits:1}) + "×";
+  $("kOwn").textContent = fmt(c.comp.ren);
+  $("kP").textContent = pctS(c.pA,0) + " · " + pctS(c.pC,0) + " · " + pctS(c.pI,0);
+  [["dALE",c.st.ale,b.st.ale],["dVaR",c.st.v99,b.st.v99],["dTVaR",c.st.t99,b.st.t99]].forEach(function(z){
+    var e = $(z[0]); if (s.any){e.textContent = chg(z[1], z[2]) + " con controles"; e.className = "d ok";} else {e.textContent = "sin controles"; e.className = "d";}
+  });
+  if ($("ledger").hidden) paintAnnual();
+  renderExposure(); renderAgg(); renderInv();
+  if (!$("p-exp").hidden) drawLEC();
+}
+
+function renderExposure(){
+  var c = state.cur, tot = c.st.ale, own = c.comp.ren;
+  $("split").innerHTML = "<div style='width:" + (own/tot*100).toFixed(1) + "%;background:var(--ochre)'>Propia " + pctS(own/tot,0) + "</div><div style='width:" + ((tot-own)/tot*100).toFixed(1) + "%;background:var(--petrol-2)'>Transferida a dependientes " + pctS((tot-own)/tot,0) + "</div>";
+  var rows = COMP.map(function(k){var cs = c.cs[k.k]; return "<tr><td>" + k.n + "</td><td class='n'>" + fmt(cs.ale) + "</td><td class='n'>" + pctS(cs.ale/tot) + "</td><td class='n'>" + fmt(cs.v95) + "</td><td class='n'>" + fmt(cs.t95) + "</td><td class='n'>" + fmt(cs.v99) + "</td></tr>";}).join("");
+  rows += "<tr class='tot'><td>Total del Estado (distribución combinada)</td><td class='n'>" + fmt(tot) + "</td><td class='n'>100%</td><td class='n'>" + fmt(c.st.v95) + "</td><td class='n'>" + fmt(c.st.t95) + "</td><td class='n'>" + fmt(c.st.v99) + "</td></tr>";
+  $("compBody").innerHTML = rows;
+}
+
+function bars(id, rows){
+  var mx = 0; rows.forEach(function(r){mx = Math.max(mx, Math.abs(r[1]));});
+  $(id).innerHTML = rows.map(function(r){return "<div class='row'><span>" + r[0] + "</span><div class='track'><div class='bar " + (r[2]||"") + "' style='width:" + (mx ? Math.abs(r[1])/mx*100 : 0).toFixed(1) + "%'></div></div><span class='val'>" + fmt(r[1]) + "</span></div>";}).join("");
+}
+function renderAgg(){
+  var c = state.cur, sim = c.sim, r2 = makeRng(7), ind = Float64Array.from(sim.a.ren);
+  COMP.forEach(function(k){if (k.own) return; var sh = shuffled(sim.a[k.k], r2); for (var i = 0; i < N; i++) ind[i] += sh[i];});
+  var si = srt(ind), tI = tvar(si,.99), vI = qt(si,.99);
+  bars("agg1", [["Evento común (correcto)", c.st.t99], ["Dependientes independientes", tI, "bad"]]);
+  $("agg1t").innerHTML = "TVaR 99%. La pérdida esperada es la misma en los dos casos (" + fmt(mean(ind)) + "), pero la cola queda <b>" + pctS((c.st.t99-tI)/c.st.t99) + " más chica</b>: se pierde el evento que golpea a todos a la vez. El VaR 99% baja de " + fmt(c.st.v99) + " a " + fmt(vI) + ".";
+  var sumV = 0; COMP.forEach(function(k){sumV += c.cs[k.k].v99;});
+  bars("agg2", [["VaR 99% de la suma (correcto)", c.st.v99], ["Suma de los VaR 99% de cada sector", sumV, "bad"]]);
+  $("agg2t").innerHTML = "Acá sumar sobreestima " + pctS((sumV-c.st.v99)/c.st.v99) + " porque los dos escenarios son independientes y hay diversificación. Pero sumar VaR no tiene dirección de error garantizada: en otro portafolio puede subestimar.";
+  var transf = c.st.ale - c.comp.ren;
+  bars("agg3", [["Contada una vez (correcto)", c.st.ale], ["Exposición transferida del nodo + pérdidas de los dependientes", c.st.ale + transf, "bad"]]);
+  $("agg3t").innerHTML = "Si el RENAPER informa la exposición que transfiere y además cada dependiente declara su pérdida, el Estado cuenta dos veces lo mismo: la pérdida esperada sube " + pctS(transf/c.st.ale) + ".";
+}
+
+var costs = {};
+function renderInv(){
+  var s = state, b = s.base.st, rows = "", list = [];
+  CONTROLS.forEach(function(c){
+    var x = s.singles[c.id], d = b.ale - x.ale, dt = b.t95 - x.t95; list.push({c:c, d:d, dt:dt});
+  });
+  list.slice().forEach(function(o){
+    var cost = costs[o.c.id], ret = cost > 0 ? ((o.d - cost)/cost) : null;
+    rows += "<tr><td>" + o.c.n + "</td><td><span class='where " + (o.c.root ? "r" : "d") + "'>" + o.c.w + "</span></td><td class='n'>" + fmt(o.d) + "</td><td class='n'>" + pctS(o.d/b.ale) + "</td><td class='n'>" + fmt(o.dt) + "</td><td class='n'><input class='cost' type='number' min='0' step='10000' id='cost-" + o.c.id + "' aria-label='Costo anual de " + o.c.n + "' value='" + (cost > 0 ? cost : "") + "' placeholder='cargar'></td><td class='n'>" + (ret === null ? "<span class='muted'>–</span>" : (ret >= 0 ? "<span style='color:var(--ok)'>" : "<span style='color:var(--risk)'>") + pctS(ret,0) + "</span>") + "</td></tr>";
+  });
+  $("invBody").innerHTML = rows;
+  CONTROLS.forEach(function(c){var inp = $("cost-" + c.id); inp.addEventListener("change", function(){var v = parseFloat(inp.value); costs[c.id] = v > 0 ? v : 0; renderInv();});});
+  var sorted = list.slice().sort(function(a,b){return b.d - a.d;});
+  bars("invBars", sorted.map(function(o){return [o.c.n, o.d, o.c.root ? "own" : ""];}));
+  var red = list[1].d, af = list[3].d, best = sorted[0];
+  $("invRead").innerHTML = "Con estos supuestos el control que más riesgo del Estado reduce es <b>" + best.c.n.toLowerCase() + "</b> (" + fmt(best.d) + " por año). " +
+    (af > red ? "El antifraude bancario, que paga un dependiente, reduce más que la redundancia del propio RENAPER (" + fmt(af) + " contra " + fmt(red) + "): el escenario que pesa es el fraude, y ese daño se materializa en bancos y ciudadanos. Como lo pagan los bancos y lo regula el BCRA, la decisión pasa a ser también regulatoria." : "Con estos supuestos la redundancia del RENAPER reduce más que el antifraude bancario (" + fmt(red) + " contra " + fmt(af) + "): domina la indisponibilidad.") +
+    " Retorno = (reducción de la pérdida esperada − costo) / costo.";
+}
+
+/* ---------- curva de excedencia ---------- */
+function drawLEC(){
+  var cv = $("lec"), dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = 300;
+  if (!W) return;
+  cv.width = W*dpr; cv.height = H*dpr; cv.style.height = H + "px";
+  var g = cv.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
+  var L = 56, R = 16, T = 12, B = 40, x0 = 5, x1 = 9, y0 = -3, y1 = -0.5;
+  var X = function(v){return L + (Math.log10(Math.max(v,1e5)) - x0)/(x1-x0)*(W-L-R);};
+  var Y = function(p){return T + (1 - (Math.log10(Math.max(p,1e-3)) - y0)/(y1-y0))*(H-T-B);};
+  g.font = "11px 'Public Sans', Arial"; g.strokeStyle = css("--line"); g.fillStyle = css("--muted"); g.lineWidth = 1;
+  var xl = {5:"0,1 M",6:"1 M",7:"10 M",8:"100 M",9:"1.000 M"};
+  for (var e = x0; e <= x1; e++){var x = X(Math.pow(10,e)); g.beginPath(); g.moveTo(x,T); g.lineTo(x,H-B); g.stroke(); g.textAlign = "center"; g.fillText(xl[e], x, H-B+16);}
+  [[0.3,"30%"],[0.1,"10%"],[0.05,"5%"],[0.01,"1%"],[0.001,"0,1%"]].forEach(function(t){var y = Y(t[0]); g.beginPath(); g.moveTo(L,y); g.lineTo(W-R,y); g.stroke(); g.textAlign = "right"; g.fillText(t[1], L-6, y+4);});
+  g.textAlign = "center"; g.fillText("Pérdida anual del Estado (USD)", (L+W-R)/2, H-6);
+  function curve(s, color, w){
+    g.strokeStyle = color; g.lineWidth = w; g.beginPath(); var first = true;
+    for (var i = 0; i <= 240; i++){
+      var v = Math.pow(10, x0 + (x1-x0)*i/240), lo = 0, hi = s.length;
+      while (lo < hi){var mid = (lo+hi)>>1; if (s[mid] > v) hi = mid; else lo = mid+1;}
+      var ex = (s.length - lo)/s.length; if (ex <= 0) break;
+      var x = X(v), y = Y(ex); if (first){g.moveTo(x,y); first = false;} else g.lineTo(x,y);
+    }
+    g.stroke();
+  }
+  if (state.any) curve(state.base.st.s, css("--muted"), 2);
+  curve(state.cur.st.s, css("--petrol"), 2.5);
+  // marcadores 1 en 20 y 1 en 100
+  [[0.05, state.cur.st.v95, "1 año en 20"], [0.01, state.cur.st.v99, "1 año en 100"]].forEach(function(m){
+    var x = X(m[1]), y = Y(m[0]); g.fillStyle = css("--ochre"); g.beginPath(); g.arc(x, y, 4.5, 0, 2*Math.PI); g.fill();
+    g.fillStyle = css("--ink"); g.textAlign = x > W*0.7 ? "right" : "left"; g.font = "12px 'Public Sans', Arial";
+    g.fillText(m[2] + ": " + fmt(m[1]), x + (x > W*0.7 ? -9 : 9), y - 8);
+  });
+}
+window.addEventListener("resize", function(){if (state && !$("p-exp").hidden) drawLEC(); if (sensData && !$("p-sen").hidden) drawTornado();});
+
+/* ---------- sensibilidad ---------- */
+var SENS = [
+  {k:"lamC", n:"Frecuencia de exposición (λ B)", mult:true},
+  {k:"idM", n:"Identidades explotadas", mult:true},
+  {k:"bankM", n:"Pérdida bancaria diaria", mult:true},
+  {k:"durM", n:"Duración de la caída", mult:true},
+  {k:"lamA", n:"Frecuencia de caídas (λ A)", mult:true},
+  {k:"lamI", n:"Frecuencia de suplantación (λ C)", mult:true}
+];
+function bestControl(p){
+  var b = mean(simulate(noCtrl(p)).tot), res = {};
+  CONTROLS.forEach(function(c){res[c.id] = b - mean(simulate(only(p, c.id)).tot);});
+  var best = CONTROLS.slice().sort(function(a,z){return res[z.id] - res[a.id];})[0];
+  return {ale:b, best:best, afWins:res.c4 > res.c2};
+}
+$("bSens").addEventListener("click", function(){
+  var btn = $("bSens"); btn.disabled = true; var p0 = noCtrl(params()), out = [], i = 0;
+  function step(){
+    if (i >= SENS.length){sensData = out; btn.disabled = false; $("sensStatus").textContent = "Listo."; $("sensOut").hidden = false; drawTornado(); renderSens(); return;}
+    var s = SENS[i]; $("sensStatus").textContent = "Simulando " + s.n.toLowerCase() + "… (" + (i+1) + " de " + SENS.length + ")";
+    setTimeout(function(){
+      var lo = {}, hi = {}; for (var k in p0){lo[k] = p0[k]; hi[k] = p0[k];}
+      lo[s.k] = p0[s.k]*0.5; hi[s.k] = p0[s.k]*2;
+      out.push({s:s, lo:bestControl(lo), hi:bestControl(hi)}); i++; step();
+    }, 30);
+  }
+  step();
+});
+function drawTornado(){
+  var cv = $("tornado"), dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = 40 + sensData.length*40;
+  if (!W) return;
+  cv.width = W*dpr; cv.height = H*dpr; cv.style.height = H + "px";
+  var g = cv.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
+  var base = mean(simulate(noCtrl(params())).tot), L = Math.min(220, W*0.38), R = 70, mx = 0;
+  sensData.forEach(function(d){mx = Math.max(mx, Math.abs(d.lo.ale-base), Math.abs(d.hi.ale-base));});
+  var cx = L + (W-L-R)/2, sc = (W-L-R)/2/(mx||1);
+  g.strokeStyle = css("--ink"); g.beginPath(); g.moveTo(cx, 10); g.lineTo(cx, H-24); g.stroke();
+  g.font = "12px 'Public Sans', Arial";
+  sensData.slice().sort(function(a,b){return Math.abs(b.hi.ale-b.lo.ale) - Math.abs(a.hi.ale-a.lo.ale);}).forEach(function(d, i){
+    var y = 16 + i*40;
+    g.fillStyle = css("--ink"); g.textAlign = "right"; g.fillText(d.s.n, L-10, y+14);
+    [[d.lo.ale, css("--petrol-3"), "×0,5"], [d.hi.ale, css("--risk"), "×2"]].forEach(function(v){
+      var w = (v[0]-base)*sc; g.fillStyle = v[1]; g.fillRect(w < 0 ? cx+w : cx, y, Math.abs(w), 20);
+      g.fillStyle = css("--muted"); g.textAlign = w < 0 ? "right" : "left"; g.font = "11px 'IBM Plex Mono', monospace";
+      g.fillText((v[0]-base >= 0 ? "+" : "−") + fmt(Math.abs(v[0]-base)).replace("USD ",""), w < 0 ? cx+w-4 : cx+w+4, y+14); g.font = "12px 'Public Sans', Arial";
+    });
+  });
+  g.fillStyle = css("--muted"); g.textAlign = "center"; g.fillText("Pérdida esperada base: " + fmt(base) + ". Celeste: supuesto a la mitad. Rojo: al doble.", cx, H-6);
+}
+function renderSens(){
+  $("sensBody").innerHTML = sensData.map(function(d){
+    var flip = d.lo.afWins !== d.hi.afWins;
+    return "<tr><td>" + d.s.n + "</td><td>" + d.lo.best.n + "</td><td>" + d.hi.best.n + "</td><td>" + (d.lo.afWins ? "Sí" : "No") + " / " + (d.hi.afWins ? "Sí" : "No") + (flip ? " <span class='pill y'>invierte el orden</span>" : " <span class='pill n'>estable</span>") + "</td></tr>";
+  }).join("");
+}
+
+/* ---------- eventos ---------- */
+var tm = null; function schedule(){clearTimeout(tm); tm = setTimeout(update, 160);}
+["lamA","lamC","lamI","durM","bankM","idM","share"].forEach(function(id){$(id).addEventListener("input", schedule);});
+["c1","c2","c3","c4","c5"].forEach(function(id){$(id).addEventListener("change", schedule);});
+$("bReset").addEventListener("click", function(){for (var k in DEFAULTS) $(k).value = DEFAULTS[k]; ["c1","c2","c3","c4","c5"].forEach(function(id){$(id).checked = false;}); sensData = null; $("sensOut").hidden = true; $("sensStatus").textContent = ""; update();});
+var themeBtn = $("themeBtn");
+function setTheme(t){document.documentElement.setAttribute("data-theme", t); themeBtn.textContent = t === "dark" ? "Modo claro" : "Modo oscuro"; try{localStorage.setItem("fair-estado-tema", t);}catch(e){}}
+var t0 = "light"; try{t0 = localStorage.getItem("fair-estado-tema") || "light";}catch(e){}
+setTheme(t0);
+themeBtn.addEventListener("click", function(){
+  setTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
+  buildGraph(); if (state){if ($("ledger").hidden) paintAnnual(); if (!$("p-exp").hidden) drawLEC(); if (sensData && !$("p-sen").hidden) drawTornado();}
+});
+buildGraph(); update();
+})();
+</script>
+
+</body>
+</html>

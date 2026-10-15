@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Informe de Safe-U sobre cuantificación del riesgo cibernético en el Estado con FAIR: riesgo sistémico y dependencias.">
+<title>FAIR en el Estado</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,650&family=Public+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: informe de lectura con índice lateral fijo en escritorio; una columna en el celular. Paleta petróleo + ocre, distinta de la demo. */
+:root{
+  --bg:#F5F6F3; --paper:#FFFFFF; --ink:#18231F; --muted:#56635D; --line:#D9DED8; --tint:#E9EFEC;
+  --petrol:#0E5359; --petrol-2:#2E7F84; --ochre:#B07A12; --ochre-soft:#F6ECD6; --risk:#A8402F; --ok:#2F7A4E; --on-petrol:#FFFFFF;
+  --f-display:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-body:"Public Sans", "Segoe UI", Arial, sans-serif;
+  --f-data:"IBM Plex Mono", Consolas, "Courier New", monospace;
+}
+:root[data-theme="dark"]{
+  --bg:#111816; --paper:#18211E; --ink:#E4EAE6; --muted:#A3B0AA; --line:#2C3833; --tint:#1F2B27;
+  --petrol:#6CB9BE; --petrol-2:#4E9EA3; --ochre:#E0AE4C; --ochre-soft:#30291A; --risk:#E0806D; --ok:#7CC79A; --on-petrol:#0E1714;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15.5px;line-height:1.6}
+.wrap{max-width:1180px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:grid;grid-template-columns:240px minmax(0,1fr);gap:40px}
+@media (max-width:920px){.wrap{grid-template-columns:minmax(0,1fr)}nav.toc{display:none}}
+nav.toc{position:sticky;top:calc(20px + env(safe-area-inset-top, 0px));align-self:start;font-size:13px;max-height:calc(100vh - 40px);overflow-y:auto}
+nav.toc .lbl{font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+nav.toc a{display:block;color:var(--muted);text-decoration:none;padding:4px 0 4px 12px;border-left:2px solid var(--line)}
+nav.toc a.s{padding-left:24px;font-size:12.5px}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--petrol);border-left-color:var(--petrol);outline:none}
+main{min-width:0}
+header.hero{border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:8px}
+.kicker{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ochre);font-weight:700}
+h1{font-family:var(--f-display);font-weight:650;font-size:clamp(28px,4.4vw,42px);line-height:1.12;margin:10px 0 12px;text-wrap:balance}
+.lead{font-size:17px;color:var(--muted);max-width:70ch;margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:14px;font-size:13px;color:var(--muted)}
+.verdict{margin-top:20px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:center;background:var(--petrol);color:var(--on-petrol);border-radius:6px;padding:18px 22px}
+.verdict .yes{font-family:var(--f-display);font-size:44px;font-weight:650;line-height:1}
+.verdict p{margin:0;max-width:72ch}
+section{padding-top:30px}
+.chap{margin-top:40px;padding-top:22px;border-top:2px solid var(--ink)}
+.chap .cn{font-family:var(--f-data);font-size:13px;color:var(--ochre);letter-spacing:.06em}
+.chap h2{font-size:30px}
+h2{font-family:var(--f-display);font-weight:650;font-size:25px;line-height:1.2;margin:0 0 8px;text-wrap:balance}
+h2 .n{font-family:var(--f-data);font-size:13px;color:var(--ochre);display:block;letter-spacing:.06em;margin-bottom:4px}
+h3{font-size:16px;margin:22px 0 6px;color:var(--petrol)}
+p{margin:0 0 12px;max-width:74ch}
+.sub{color:var(--muted)}
+.tag{font-size:11px;font-weight:700;letter-spacing:.04em;padding:2px 6px;border-radius:3px;white-space:nowrap;vertical-align:1px}
+.t-inf{background:var(--ochre-soft);color:var(--ochre)}
+.t-ilu{background:var(--tint);color:var(--petrol)}
+ol.msgs{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:10px;counter-reset:m}
+ol.msgs li{counter-increment:m;display:grid;grid-template-columns:36px minmax(0,1fr);gap:12px;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:12px 16px}
+ol.msgs li::before{content:counter(m);font-family:var(--f-display);font-size:26px;font-weight:650;color:var(--ochre);line-height:1}
+ol.msgs h4{margin:0 0 3px;font-size:15px}
+ol.msgs p{margin:0;font-size:14.5px}
+.figs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0}
+@media (max-width:760px){.figs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.fig{border-top:3px solid var(--petrol);background:var(--paper);padding:12px 14px;border-radius:0 0 6px 6px}
+.fig .v{font-family:var(--f-data);font-size:21px;color:var(--petrol);font-variant-numeric:tabular-nums}
+.fig .l{font-size:12.5px;color:var(--muted);line-height:1.4;margin-top:4px}
+.tbl{overflow-x:auto;margin:10px 0 8px;border:1px solid var(--line);border-radius:6px;background:var(--paper)}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:680px}
+table.wide{min-width:1080px;font-size:12.5px}
+th{text-align:left;background:var(--tint);font-weight:700;padding:8px 10px;font-size:12px;letter-spacing:.02em;border-bottom:1px solid var(--line);vertical-align:bottom}
+td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.num{font-family:var(--f-data);font-variant-numeric:tabular-nums;white-space:nowrap}
+td.org{font-weight:600;min-width:130px}
+td.src{color:var(--muted);font-size:11.5px}
+.yes-c{color:var(--ok);font-weight:700}.no-c{color:var(--risk);font-weight:700}.mid-c{color:var(--ochre);font-weight:700}
+.note{font-size:12.5px;color:var(--muted)}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:12px}
+@media (max-width:760px){.cols{grid-template-columns:minmax(0,1fr)}}
+.box{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:14px 16px;min-width:0}
+.box h4{margin:0 0 6px;font-size:14.5px;color:var(--petrol)}
+.box p,.box li{font-size:14px}
+.box p:last-child{margin-bottom:0}
+.box ul{margin:0;padding-left:18px}
+.case{border-left:3px solid var(--petrol-2);padding:2px 0 2px 14px;margin:14px 0}
+.case h4{margin:0 0 4px;font-size:15px}
+.case h4 span{font-weight:400;color:var(--muted);font-size:13px}
+.case p{font-size:14.5px;margin-bottom:6px}
+.case .fair{font-size:13.5px;color:var(--muted)}
+.renaper{margin-top:26px;background:var(--paper);border:1px solid var(--line);border-top:4px solid var(--ochre);border-radius:6px;padding:18px 20px}
+.renaper h3{margin-top:0;color:var(--ink);font-family:var(--f-display);font-size:21px}
+.chart{margin:12px 0}
+.chart h4{margin:0 0 8px;font-size:13.5px}
+.row{display:grid;grid-template-columns:minmax(120px,220px) minmax(0,1fr) 92px;gap:10px;align-items:center;margin:6px 0;font-size:13px}
+@media (max-width:560px){.row{grid-template-columns:100px minmax(0,1fr) 74px;font-size:12px}}
+.track{background:var(--tint);border-radius:3px;height:13px;overflow:hidden}
+.bar{height:100%;background:var(--petrol-2);border-radius:3px}
+.bar.own{background:var(--ochre)}
+.bar.bad{background:var(--risk)}
+.row .val{font-family:var(--f-data);font-variant-numeric:tabular-nums;text-align:right;font-size:12.5px}
+a{color:var(--petrol)}
+a:focus-visible{outline:2px solid var(--ochre);outline-offset:2px}
+footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+footer p{max-width:none}
+.hdr-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.hbtn{font:inherit;font-size:13.5px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:5px;padding:8px 14px;cursor:pointer;text-decoration:none;display:inline-block}
+.hbtn:hover{border-color:var(--petrol);color:var(--petrol)}
+.hbtn.pri{background:var(--petrol);border-color:var(--petrol);color:var(--on-petrol)}
+.hbtn.pri:hover{color:var(--on-petrol);filter:brightness(1.08)}
+.hbtn:focus-visible{outline:2px solid var(--ochre);outline-offset:2px}
+@media print{nav.toc{display:none}.wrap{grid-template-columns:1fr;padding:0}body{font-size:10.5pt}.box,.case,ol.msgs li,.renaper{break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<nav class="toc" aria-label="Índice">
+  <div class="lbl">Índice</div>
+  <a href="#resumen">1. Resumen</a>
+  <a href="#informe">2. Informe completo</a>
+  <a class="s" href="#s21">2.1 Alcance y método</a>
+  <a class="s" href="#s22">2.2 Bloque A. FAIR en un organismo</a>
+  <a class="s" href="#s23">2.3 Bloque E. Otros gobiernos y Argentina</a>
+  <a class="s" href="#s24">2.4 Resumen de los incidentes</a>
+  <a class="s" href="#s25">2.5 Bloque B. Riesgo de dependencias</a>
+  <a class="s" href="#s26">2.6 Bloque F. Usos y respuestas</a>
+  <a href="#t3">3. Tabla de incidentes</a>
+  <a href="#t4">4. Tabla comparativa de países</a>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="kicker">Informe para la dirección · Safe-U · octubre de 2026</div>
+  <h1>Cuantificación del riesgo cibernético en el Estado: FAIR, riesgo sistémico y dependencias</h1>
+  <p class="lead">Versión web del informe, para leer en pantalla. Mantiene la estructura y las tablas del documento completo y resume el resto. Todas las cifras están verificadas dos veces contra su fuente primaria.</p>
+  <div class="meta"><span>Autor: Joaquín Galermes</span><span>Corte: 14 de octubre de 2026</span><span>96 cifras con doble verificación</span></div>
+  <div class="hdr-actions"><a class="hbtn pri" href="demo.html">Abrir la demo interactiva</a><button class="hbtn" id="themeBtn" type="button">Modo oscuro</button></div>
+  <div class="verdict">
+    <div class="yes">Sí</div>
+    <p>Un organismo del Sector Público Nacional puede analizar su riesgo con FAIR aunque no tenga historial propio, partiendo de benchmarks y de un punto de partida común que fije el Estado. La condición es presentar una distribución de pérdidas con supuestos explícitos, nunca un número cerrado.</p>
+  </div>
+</header>
+
+<section id="resumen">
+  <h2><span class="n">1. RESUMEN PARA LA DIRECCIÓN</span>Cinco mensajes principales</h2>
+  <ol class="msgs">
+    <li><div><h4>El respaldo metodológico existe y es reciente, pero ningún gobierno exige FAIR</h4><p>Desde diciembre de 2025, NIST IR 8286 Rev. 1 dice que los métodos cuantitativos son los preferidos y cita Open FAIR. El mejor caso de uso en un gobierno es el estado de Virginia, donde un modelo cuantitativo ayudó al Tesoro estatal a determinar cuánto seguro cibernético necesitaba.</p></div></li>
+    <li><div><h4>Sin datos propios se puede empezar, siempre con rangos</h4><p>Hay benchmarks para el sector público (IBM, Sophos, Cyentia IRIS, SIGEN), pero ninguno es argentino en costo y miden cosas distintas.</p></div></li>
+    <li><div><h4>Argentina tiene casi todos los insumos institucionales; le falta el paso a dinero y la agregación</h4><p>SIGEN ya puntúa el impacto de un ente sobre otros, y la Disposición CNC 1/2026 exige análisis de impacto con RTO y RPO, sin montos. Un piloto FAIR se monta sobre ese análisis sin crear una obligación nueva.</p></div></li>
+    <li><div><h4>El riesgo que importa es el de dependencias, y suele entrar por un organismo consumidor</h4><p>Ningún incidente argentino verificado tiene costo publicado: hoy el Estado no sabe cuánto le cuesta un incidente ni a quién.</p></div></li>
+    <li><div><h4>La agregación es donde el análisis gana o pierde credibilidad</h4><p>El evento de un nodo raíz se modela una sola vez y se reparte entre sus dependientes. Hacerlo mal deja igual la pérdida esperada pero subestima la cola, o duplica la pérdida de terceros.</p></div></li>
+  </ol>
+  <p style="margin-top:14px">La idea se matiza en tres puntos: ningún gobierno publica un análisis FAIR de dependencias entre organismos (seríamos de los primeros); la rama que más pesa, el daño a terceros, hoy no se puede calibrar con datos públicos argentinos; e invertir en el nodo raíz no siempre es lo que más reduce el riesgo del Estado.</p>
+</section>
+
+<div class="chap" id="informe"><span class="cn">2.</span><h2>Informe completo</h2></div>
+
+<section id="s21">
+  <h2><span class="n">2.1</span>Alcance, método y cómo leer este informe</h2>
+  <p>La pregunta que guía el trabajo es cómo se gestiona y se cuantifica el riesgo cibernético con lógica de gobierno y no de organismo aislado: qué antecedentes hay en Argentina, la región, Estados Unidos, Francia y otros países, para qué se usaron y qué preguntas permitieron responder que antes no se podían responder.</p>
+  <p>Cada cifra se buscó en su fuente primaria y se volvió a contrastar en una segunda pasada independiente. Esa pasada revisó 96 cifras: confirmó 77, ajustó la redacción o la página de 12, corrigió 4 y dejó 2 como no verificables. Lo no verificable no se usa como dato.</p>
+  <div class="cols">
+    <div class="box"><h4>Tres clases de contenido</h4><ul>
+      <li><b>Hecho verificado:</b> lo que dice la fuente.</li>
+      <li><b>Estimación de terceros:</b> una cifra publicada por otro con su método (IBM, Sophos, Lloyd's, RAND).</li>
+      <li><b>Inferencia nuestra:</b> lo que propone Safe-U, marcado con <span class="tag t-inf">INFERENCIA NUESTRA</span>.</li>
+    </ul></div>
+    <div class="box"><h4>Dos reglas</h4><p><b>Licencia:</b> la taxonomía FAIR del FAIR Institute no permite obras derivadas, así que las ramas y formas de pérdida se describen con palabras propias.</p><p><b>Neutralidad:</b> los incidentes se describen por organismo, fecha y hechos técnicos, sin atribuir responsabilidades a gestiones ni a gobiernos.</p></div>
+  </div>
+</section>
+
+<section id="s22">
+  <h2><span class="n">2.2 · BLOQUE A</span>¿Se puede aplicar FAIR en un organismo público?</h2>
+  <p>FAIR descompone el riesgo de un escenario en dos preguntas: cuántas veces por año se espera que termine en una pérdida y cuánto se pierde cada vez. Nada de eso depende de que la organización tenga ingresos. Lo que cambia en el Estado es qué se cuenta como pérdida, de dónde salen los números y quién los estima.</p>
+
+  <h3>A.1 Qué se mide cuando no hay ingresos</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Qué se mide</th><th>Ejemplo con fuente</th><th>Cómo se expresa en dinero</th></tr></thead>
+    <tbody>
+      <tr><td class="org">Costo fiscal directo</td><td>Costa Rica 2022: ₡13.418.907.369,59 de atención directa. HSE Irlanda: €102.099.792</td><td>Directo, en moneda</td></tr>
+      <tr><td class="org">Recaudación perdida o demorada</td><td>Baltimore 2019: USD 8,2 M sobre USD 18,2 M. Costa Rica: ₡287.892 M recaudados sin poder imputar</td><td>Directo; separar demora de pérdida definitiva</td></tr>
+      <tr><td class="org">Continuidad de funciones esenciales</td><td>Córdoba 2022: al menos 7 días hábiles inhábiles. Migraciones 2020: fronteras cerradas unas 4 horas</td><td>Unidad física (días, horas, trámites) por valor por unidad</td></tr>
+      <tr><td class="org">Costo para el ciudadano</td><td>NAO: 10.152 turnos y 1.710 procedimientos postergados por el ataque a un proveedor del NHS</td><td>Tiempo a precio social; fraude; salud con cautela</td></tr>
+      <tr><td class="org">Costo para terceros dependientes</td><td>Colombia 2023 (IFX): términos judiciales suspendidos 5 días hábiles; prescripción médica en contingencia</td><td>Pérdida por día de cada sector dependiente</td></tr>
+      <tr><td class="org">Confianza pública</td><td>Sin caso argentino medido</td><td>Costo de atención alternativa; el resto, cualitativo</td></tr>
+    </tbody>
+  </table></div>
+  <p>El estudio de CISA de 2020 ofrece una referencia de escala: en la mayoría de los organismos públicos el costo de un incidente queda por debajo del 0,2% del presupuesto operativo, con una cola que llega cerca del 2% en el percentil 85. Expresar la pérdida como fracción del presupuesto es el equivalente público del porcentaje de ingresos de una empresa. <span class="tag t-inf">INFERENCIA NUESTRA</span></p>
+
+  <h3>A.2 Las seis formas de pérdida en el Estado</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Forma de pérdida</th><th>Qué pasa en el Estado</th><th>Ejemplo</th></tr></thead>
+    <tbody>
+      <tr><td class="org">Productividad</td><td>Se amplía: incluye la función no prestada y la recaudación demorada, que puede ser la mayor parte del costo</td><td>Baltimore: 45% del costo fue recaudación</td></tr>
+      <tr><td class="org">Respuesta</td><td>Igual. Es la mejor documentada</td><td>Plan de la CNE en Costa Rica; contratos de emergencia de Atlanta</td></tr>
+      <tr><td class="org">Reemplazo</td><td>Incluye la reingeniería de servicios</td><td>HSE: unos €657 M de mejoras estimadas</td></tr>
+      <tr><td class="org">Multas y sentencias</td><td>Se transforma: una multa entre organismos es una transferencia; las sentencias a ciudadanos sí cuentan</td><td>HSE: 473 procesos. Fallo «Palazzi c/ EN-RENAPER» (2025)</td></tr>
+      <tr><td class="org">Reputación</td><td>Pasa a ser confianza: el ciudadano no puede irse a otro RENAPER, deja el canal digital</td><td>Sin caso argentino medido</td></tr>
+      <tr><td class="org">Ventaja competitiva</td><td>Pierde sentido; sobrevive como daño a la seguridad del Estado, mejor tratado en bandas</td><td>Migraciones 2020; SEDENA (México) 2022</td></tr>
+    </tbody>
+  </table></div>
+  <p>Aparecen cuatro formas con peso propio: costo para el ciudadano, costo para organismos dependientes, errores de pago (en Costa Rica, ₡8.100 millones de salarios pagados de más) y daño a la salud. Hay que declarar siempre si la cuenta es fiscal o social, para no contar transferencias dos veces. <span class="tag t-inf">INFERENCIA NUESTRA</span></p>
+
+  <h3>A.3 Benchmarks disponibles para el sector público</h3>
+  <div class="figs">
+    <div class="fig"><div class="v">USD 3,50 M</div><div class="l">Costo por brecha, industria «Public», la más baja de 17. IBM 2026</div></div>
+    <div class="fig"><div class="v">USD 2,83 M</div><div class="l">Recuperación media de ransomware, gobierno estatal y local. Sophos 2024</div></div>
+    <div class="fig"><div class="v">10,9%</div><div class="l">Probabilidad anual de incidente significativo, sector público. IRIS 2025</div></div>
+    <div class="fig"><div class="v">26%</div><div class="l">Entes del SPN con hackeos o sin controles. SIGEN 2024</div></div>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Fuente</th><th>Cifra</th><th>Alcance y cuidado</th></tr></thead>
+    <tbody>
+      <tr><td class="org">IBM CODB 2026</td><td>«Public» USD 3,50 M (2025: 2,86 M), Fig. 4, p. 8. Latinoamérica USD 4,65 M. Abuso de cuentas válidas USD 5,07 M</td><td>602 organizaciones; brechas de 2.590 a 115.380 registros. Excluye megabrechas</td></tr>
+      <tr><td class="org">Sophos 2024</td><td>34% alcanzados; 98% con cifrado; 51% de ataques a respaldos con éxito; recuperación media USD 2,83 M; 54% pagó algún rescate</td><td>270 gobiernos subnacionales. Sin edición de gobierno 2025 ni 2026</td></tr>
+      <tr><td class="org">Verizon DBIR 2026</td><td>Administración pública: 2.410 brechas; actores internos 44%; terceros 36%; elemento humano 69%</td><td>Sin costos. Pocos contribuyentes de gobierno</td></tr>
+      <tr><td class="org">Cyentia IRIS 2025</td><td>10,9% anual (manufactura 11,2%). Sector público: mediana USD 214 mil, p95 USD 18 M</td><td>Mayoría de EE.UU.; la divulgación obligatoria infla la frecuencia</td></tr>
+      <tr><td class="org">CISA OCE 2020</td><td>Sector público: mediana USD 176 mil, media USD 2 M por incidente</td><td>EE.UU., todo tipo de incidente</td></tr>
+      <tr><td class="org">ENISA 2026</td><td>Administración pública: 31,8% de los eventos, primer sector; 81,8% son DDoS ideológicos</td><td>UE, sin costos</td></tr>
+      <tr><td class="org">Banco Mundial 2024</td><td>36% de los incidentes divulgados en países en desarrollo apuntan a la administración pública</td><td>Sin costo por incidente</td></tr>
+      <tr><td class="org">SIGEN 2024</td><td>26% con hackeos o sin controles; 77% sin plan de contingencias; 86% sin pruebas de intrusión regulares</td><td>Autoevaluación; el 26% no es probabilidad de incidente</td></tr>
+    </tbody>
+  </table></div>
+  <p>Las fuentes no miden lo mismo: la media implícita de IRIS para el sector público ronda los USD 8 millones, más del doble que IBM. Por eso sirven para construir rangos, no un número. El sector público aparece como el más barato por evento y uno de los más frecuentes, lo que lleva la discusión a la pérdida de terceros, que ningún benchmark mide.</p>
+
+  <h3>A.4 Cómo se escalan a un organismo argentino</h3>
+  <div class="cols">
+    <div class="box"><h4>Cuatro pasos <span class="tag t-inf">INFERENCIA NUESTRA</span></h4><ul>
+      <li><b>Ancla por industria:</b> IBM «Public» para brechas; Sophos para ransomware.</li>
+      <li><b>Ajuste regional:</b> 4,65 / 4,99 = 0,93, ancla de unos USD 3,3 M. Supone efectos multiplicativos, no verificado.</li>
+      <li><b>Tamaño:</b> por presupuesto (relación de CISA) o por registros (USD 192 cada uno, solo dentro del rango de IBM).</li>
+      <li><b>Moneda:</b> trabajo local ajustado por salarios; servicios en divisa, en dólares.</li>
+    </ul></div>
+    <div class="box"><h4>La regla que sí se sostiene</h4><p>Reportar siempre el rango que resulta de los distintos benchmarks, desde la mediana de IRIS hasta la media de IBM, y dejar que el dato propio del organismo mueva la estimación dentro de ese rango cuando llegue.</p></div>
+  </div>
+
+  <h3>A.5 ¿Existe una postura de riesgo de referencia?</h3>
+  <p>Ningún país publica una postura de referencia en dinero. Existen líneas de base de controles que pueden funcionar como punto de partida para la resistencia del organismo: los Cross-Sector Performance Goals 2.0 de CISA (diciembre de 2025), la BIO2 obligatoria de los Países Bajos (septiembre de 2025), la DA 641/2021 y la Disposición CNC 1/2026 en Argentina, el Mapa de Riesgos de SIGEN y la guía colombiana con bandas en salarios mínimos.</p>
+  <p>Cómo se usaría: el gobierno fija un punto de partida común por tipo de organismo (frecuencia anclada en IRIS, costo en IBM y Sophos, resistencia según el cumplimiento de la DA 641/2021) y cada organismo lo actualiza con su evidencia: incidentes notificados, análisis de impacto, días de inactividad. Un organismo sin historia queda en el punto común; uno con años de registro se aleja en proporción a su dato. NIST IR 8286A Rev. 1 respalda el análisis bayesiano y la estimación calibrada. <span class="tag t-inf">INFERENCIA NUESTRA</span></p>
+
+  <h3>A.6 Cómo se valúa el daño al ciudadano y a terceros</h3>
+  <p>Para trámites caídos, el valor social del tiempo: personas afectadas por horas perdidas por el valor social de la hora. En Argentina no encontramos un valor nacional vigente (la Resolución 110/1996 está derogada); Mendoza publica precios sociales 2023 con un factor de tiempo de 0,23 sobre el salario neto de la EPH. Para el fraude con identidad, identidades explotadas por tasa de éxito por pérdida media, sin estadística pública argentina. Cuando el daño es a la salud, la práctica es informar unidades de servicio. Recomendamos reportar tres cuentas separadas: la fiscal, la del ciudadano y terceros, y la no monetizable.</p>
+</section>
+
+<section id="s23">
+  <h2><span class="n">2.3 · BLOQUE E</span>Cómo lo hacen otros gobiernos y qué marco tiene la Argentina</h2>
+  <p>Ningún gobierno relevado exige FAIR. Los marcos nacionales son mayoritariamente cualitativos o semicuantitativos. Los que llegan a montos lo hacen con bandas de dinero (Reino Unido, Colombia) o como recomendación metodológica (NIST, la guía ANSSI–AMRAE). El uso real documentado aparece ligado a dos decisiones: cuánto seguro comprar y dónde poner el presupuesto.</p>
+
+  <h3>E.1 Estados Unidos</h3>
+  <p>Las agencias federales gestionan el riesgo bajo FISMA con el Risk Management Framework de NIST. La pieza clave es la serie NIST IR 8286, revisada el 18 de diciembre de 2025: dice que «quantitative methods are preferred», cita a Open FAIR, usa curvas de excedencia y prevé informar los riesgos traducidos a dinero al Congreso, la OMB y la GAO. La IR 8286A trae un ejemplo de ransomware sobre 112.000 historias clínicas con USD 1,14 M de pérdida primaria. NIST no obliga ni adopta FAIR, pero es el respaldo normativo más fuerte para proponerlo.</p>
+  <p>La OMB reemitió la Circular A-123 el 10 de marzo de 2026 y pasó la gestión de riesgo empresarial de obligatoria a buena práctica. La GAO (2019) encontró que 11 de 23 agencias no tenían proceso para agregar el riesgo de sus sistemas. CISA (2020) estimó las pérdidas directas anuales del sector público entre USD 84,5 M y 1.886 M según el percentil, y el Council of Economic Advisers calculó el costo para la economía en USD 57.000 a 109.000 M en 2016 (0,31% a 0,58% del PIB).</p>
+  <p>El único caso de gobierno con documento oficial propio es Virginia: su informe de 2020 dice que el modelo cuantitativo «helped the Department of Treasury determine how much cyber liability insurance is needed» y ayudó a priorizar decisiones de TI. La prensa especializada lo describe como una versión modificada de FAIR. Los programas atribuidos al Departamento de Energía, la OCC, la NASA o el Ejército se apoyan solo en declaraciones del FAIR Institute y no se usan como dato.</p>
+
+  <h3>E.2 Francia</h3>
+  <p>La ANSSI usa EBIOS Risk Manager, que mide la gravedad en una escala cualitativa de cuatro niveles. El puente a montos es la guía ANSSI–AMRAE de 2019, que recomienda valorizar en dinero los peores escenarios por componentes de costo, expresándolos como porcentaje de la facturación, sin modelo estadístico. La Cour des comptes (16 de junio de 2025) pidió que la estrategia tenga traducción presupuestaria plurianual y advirtió que la ANSSI tiene capacidades limitadas ante ataques simultáneos. No hay evidencia de uso de FAIR.</p>
+
+  <h3>E.3 Reino Unido</h3>
+  <p>El National Risk Register 2025 es el caso más claro de cuantificación nacional en bandas: probabilidad a dos años en cinco niveles e impacto económico desde millones hasta decenas de miles de millones de libras. Los ataques a infraestructura promedian cientos de millones de libras y entre 5% y 25% en dos años. La NAO (enero de 2025) encontró brechas en los 58 sistemas críticos evaluados. KPMG para el gobierno estimó el costo para las empresas en 14.700 M de libras, 0,5% del PIB. Sin uso de FAIR.</p>
+
+  <h3>E.4 Unión Europea y organismos multilaterales</h3>
+  <p>NIS2 alcanza a la administración pública central y exige gestión de riesgos y de cadena de suministro, sin cuantificar en dinero. ENISA ubica a la administración pública como el sector más atacado (31,8%). El Banco Mundial informa que el 36% de los incidentes divulgados en países en desarrollo apuntan al Estado. El BID y la OEA estimaron en 2020 que los daños podrían superar el 1% del PIB en algunos países de la región.</p>
+
+  <h3>E.5 Otros países</h3>
+  <p>Colombia es el único país relevado cuya guía oficial de riesgo del sector público fija bandas en dinero: en salarios mínimos, de leve (menos de 10) a catastrófico (más de 500), también para seguridad de la información. Brasil mide madurez de controles (el TCU encontró que ninguna de 229 organizaciones federales implementa las 56 medidas). Chile creó la ANCI en 2024. Países Bajos tiene la línea base BIO2. En Alemania, Israel, los nórdicos, Uruguay y México no encontramos cuantificación en dinero.</p>
+
+  <h3>E.6 La Argentina: marco vigente</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Norma o institución</th><th>Qué establece</th><th>Publicación</th></tr></thead>
+    <tbody>
+      <tr><td class="org">DA 641/2021</td><td>Requisitos mínimos de seguridad para el SPN; reporte de incidentes en 48 horas; alcance a proveedores. No menciona impacto económico</td><td>BO 28/06/2021</td></tr>
+      <tr><td class="org">Res. 44/2023</td><td>Segunda Estrategia Nacional de Ciberseguridad</td><td>BO 04/09/2023</td></tr>
+      <tr><td class="org">DNU 941/2025</td><td>Crea el CNC en la órbita de la JGM: infraestructuras críticas, registro de CSIRT, plan de recuperación para el SPN, CERT.ar</td><td>BO 02/01/2026</td></tr>
+      <tr><td class="org">Disposición CNC 1/2026</td><td>Análisis de impacto con RTO y RPO por sistema y estimación del impacto por dimensiones, sin montos. Plazo de 180 días</td><td>BO 13/05/2026</td></tr>
+      <tr><td class="org">SIGEN</td><td>Normas de control interno (Res. 172/2014 y 87/2022) y Mapa de Riesgos anual del SPN, con el impacto sobre otros entes como factor</td><td>Relevamiento 2024</td></tr>
+      <tr><td class="org">AGN</td><td>Control externo; no encontramos informes sobre ciberseguridad entre 2023 y 2026</td><td>Ley 24.156</td></tr>
+      <tr><td class="org">Ley 25.326</td><td>Protección de datos personales; proyecto de reemplazo 3397-D-2026 sin dictamen</td><td>2000</td></tr>
+    </tbody>
+  </table></div>
+  <p>El Mapa de Riesgos de SIGEN es el antecedente más cercano a una visión de Estado: mide en puntaje el impacto de las decisiones de un ente sobre otros. Según la autoevaluación de 2024: 77% sin política de seguridad alineada, 77% sin plan de contingencias, 86% sin pruebas de intrusión regulares, 92% sin política de riesgos formalizada y 85% sin seguros vigentes sobre sus activos. Ninguna norma pide pérdida esperada ni agregación entre organismos: ese es el hueco que un piloto FAIR puede llenar usando el análisis de impacto que la Disposición CNC 1/2026 ya exige, cuyo plazo vence hacia el 10 de noviembre de 2026 si son días corridos. <span class="tag t-inf">INFERENCIA NUESTRA</span></p>
+
+  <h3>E.7 Uso de FAIR por gobiernos: lo documentado y lo declarado</h3>
+  <div class="cols">
+    <div class="box"><h4>Con documento oficial</h4><p>Solo Virginia, que describe un modelo cuantitativo para seguro y priorización sin nombrar a FAIR.</p></div>
+    <div class="box"><h4>Con respaldo normativo, sin uso documentado</h4><p>NIST prefiere los métodos cuantitativos y cita Open FAIR. No exige ni adopta FAIR.</p></div>
+    <div class="box"><h4>Solo declarado por el FAIR Institute</h4><p>Departamento de Energía, OCC, NASA, Ejército de EE.UU. No se usa como dato.</p></div>
+    <div class="box"><h4>Fuera de EE.UU.</h4><p>Ningún gobierno usa FAIR. Francia, el Reino Unido y Colombia llegan a montos por otras vías.</p></div>
+  </div>
+</section>
+
+<section id="s24">
+  <h2><span class="n">2.4 · BLOQUES C Y D</span>Resumen de los incidentes</h2>
+  <p>Un hallazgo atraviesa todos los casos argentinos: ningún organismo publicó cuánto le costó responder, recuperar o compensar. Los casos internacionales son los que aportan la calibración en dinero. Las lecturas FAIR son siempre inferencia nuestra.</p>
+
+  <div class="case"><h4>RENAPER <span>octubre de 2021, con reapariciones en 2024</span></h4>
+    <p>El comunicado oficial confirmó 19 consultas hechas desde una VPN autorizada al Ministerio de Salud, con una clave otorgada a ese ministerio; descartó un ingreso a sus sistemas y denunció el hecho ante el Juzgado Federal N.º 11. Un medio verificó que se vendían consultas a pedido. Las fotos publicadas en abril de 2024 se atribuyeron oficialmente al incidente de 2021. La dependencia está documentada (el BCRA recomienda validar la biometría contra el RENAPER en el alta digital), pero la escalada no: no encontramos vínculos con fraudes concretos ni medidas del BCRA o la AAIP por este caso. En la justicia, el habeas data «Palazzi» (2025).</p>
+    <p class="fair">Lectura FAIR: el escenario no es un hackeo al RENAPER sino el abuso de la credencial de un consumidor. La superficie de ataque del nodo es la suma de sus convenios y la pérdida mayor cae en terceros.</p></div>
+  <div class="case"><h4>Ministerio de Salud <span>2021 y octubre de 2022</span></h4>
+    <p>Dos hechos confirmados: la credencial usada contra el RENAPER y el compromiso de una cuenta de correo en octubre de 2022, con envíos masivos desde cuentas institucionales. Los reclamos de 2025 y 2026 no tienen confirmación.</p>
+    <p class="fair">Lectura FAIR: un organismo con miles de usuarios externos funciona como puerta de entrada a nodos raíz.</p></div>
+  <div class="case"><h4>Corte Suprema y Poder Judicial <span>2016, 2022, 2024 y 2026</span></h4>
+    <p>No encontramos un incidente propio de la Corte. En octubre de 2016, un ataque al proveedor tiró el portal del Poder Judicial de la Nación y la Corte declaró inhábiles dos días (Res. 3019/2016). Córdoba 2022: ransomware y al menos 7 días hábiles inhábiles, posiblemente 9. Chaco 2022: se perdieron los escritos de inicio de 3,5 meses. Suprema Corte bonaerense 2026: filtración de un repositorio.</p>
+    <p class="fair">Lectura FAIR: en la justicia domina la disponibilidad y su unidad es el día inhábil, que se declara por acto formal. Es uno de los pocos ámbitos con registro oficial de la duración de cada interrupción.</p></div>
+  <div class="case"><h4>Migraciones <span>agosto de 2020</span></h4>
+    <p>Ransomware que dejó inoperable el sistema de control migratorio: cinco pasos fronterizos, Ezeiza y Buquebus cerrados unas 4 horas, sin poder chequear órdenes judiciales ni alertas de Interpol. Rescate de unos USD 4 M, no pagado.</p>
+    <p class="fair">Lectura FAIR: una función esencial con un único sistema de soporte; la pregunta era cuánto cuesta un modo degradado seguro.</p></div>
+  <div class="case"><h4>PAMI, CNV y Senado <span>2022 y 2023</span></h4>
+    <p>PAMI (agosto de 2023): ransomware con datos de afiliados publicados y régimen de emergencia para recetas; la caída simultánea de plataformas de la ANMAT no está confirmada como vinculada. CNV (junio de 2023) y Senado (enero de 2022): ransomware con plataformas caídas. Ninguno con costo documentado.</p></div>
+  <div class="case"><h4>Costa Rica <span>abril a mayo de 2022</span></h4>
+    <p>Ransomware contra Hacienda (recaudación y aduanas) y la Caja de Seguro Social; emergencia nacional por decreto. Costo de atención directa ₡13.418.907.369,59, unos USD 19,4 a 19,7 M con tipo de cambio supuesto; la Contraloría encontró ₡287.892 M recaudados sin imputar y ₡8.100 M de salarios pagados de más. La emergencia duró casi tres años.</p></div>
+  <div class="case"><h4>IFX Networks, Colombia <span>septiembre de 2023</span></h4>
+    <p>Ransomware en un proveedor de nube. Un acuerdo del Consejo Superior de la Judicatura identifica el contrato 257-2022 y la suspensión de términos judiciales en todo el país del 14 al 20 de septiembre. La Circular 011/2023 de Minsalud confirma la caída de la prescripción médica y del registro de nacimientos y defunciones.</p>
+    <p class="fair">Lectura FAIR: un único contrato concentraba la disponibilidad de la justicia de todo el país. La contratación pública es un control de riesgo sistémico.</p></div>
+  <div class="case"><h4>HSE Irlanda, Atlanta y Baltimore</h4>
+    <p>HSE (2021): €102,1 M del evento frente a unos €657 M de mejoras estructurales, 6,4 veces más. Baltimore (2019): USD 18,2 M, 45% en recaudación perdida. Atlanta (2018): el gasto documentado fue unas 50 veces el rescate pedido, que no se pagó.</p></div>
+
+  <h3>Patrones que se repiten <span class="tag t-inf">INFERENCIA NUESTRA</span></h3>
+  <div class="cols">
+    <div class="box"><h4>Dos clases de nodo raíz</h4><p>Los de identidad y registro se rompen por confidencialidad y su daño dura años. Los de servicio se rompen por disponibilidad y su daño se mide en días.</p></div>
+    <div class="box"><h4>La entrada es un consumidor</h4><p>El mapa de dependencias tiene que dibujar las credenciales que el nodo entrega, no solo los servicios que consume.</p></div>
+    <div class="box"><h4>Proveedores compartidos, eventos comunes</h4><p>IFX, GTD y el proveedor del Poder Judicial: un evento, muchas pérdidas simultáneas. En Argentina no hay inventario publicado de qué organismo corre sobre qué contrato.</p></div>
+    <div class="box"><h4>El costo directo es la parte chica</h4><p>Frente al costo para terceros y a la remediación estructural. Es el argumento central para dirigir el presupuesto al nodo que más pérdida transfiere.</p></div>
+  </div>
+</section>
+
+<section id="s25">
+  <h2><span class="n">2.5 · BLOQUE B</span>Riesgo sistémico y de dependencias</h2>
+  <h3>B.1 Las raíces de confianza del Estado</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Nodo raíz</th><th>Quién depende (documentado)</th><th>Cómo falla</th></tr></thead>
+    <tbody>
+      <tr><td class="org">RENAPER, Sistema de Identidad Digital</td><td>Bancos (el BCRA recomienda validar biometría contra el RENAPER y exige su constancia de CUIL para abrir cuentas), organismos por convenio, Mi Argentina</td><td>Confidencialidad y abuso de acceso legítimo (2021)</td></tr>
+      <tr><td class="org">Credenciales de organismos con muchos usuarios externos</td><td>Prestadores, provincias y el propio RENAPER</td><td>Credenciales en venta; puerta de entrada a nodos raíz</td></tr>
+      <tr><td class="org">Proveedores compartidos de nube y conectividad</td><td>Justicia nacional (2016 y 2024); en la región, justicia y salud de Colombia, gobierno de Chile</td><td>Disponibilidad; evento común simultáneo</td></tr>
+      <tr><td class="org">Nodos de servicio (recaudación, seguridad social, PAMI)</td><td>Comercio exterior, prestadores, farmacias</td><td>Disponibilidad medida en días</td></tr>
+    </tbody>
+  </table></div>
+  <h3>B.2 Métodos para modelar la propagación</h3>
+  <p>CISA aporta la descomposición de 55 funciones críticas nacionales en subfunciones y dependencias, sin dinero. El mercado asegurador es el que más avanzó en montos: el escenario de Lloyd's (octubre de 2023) de ataque a un sistema de pagos estima USD 3,5 billones en cinco años, y Bashe de CyRiM (2019) llega a USD 193.000 M con 86% sin seguro, lo que convierte al Estado en asegurador de última instancia. La Reserva Federal de Nueva York estimó que si cae uno cualquiera de los cinco bancos más activos se afecta en promedio el 38% de la red. NIST aporta el proceso (IR 8286C y 8286D, SP 800-161). No encontramos una guía del FAIR Institute sobre agregación sistémica.</p>
+  <p>Proponemos un grafo dirigido: los nodos son organismos, proveedores y sectores, y cada arista lleva la fracción de la operación del dependiente que queda afectada y su pérdida por unidad de tiempo. Las credenciales que un nodo entrega se dibujan en sentido inverso, porque también son superficie de ataque. <span class="tag t-inf">INFERENCIA NUESTRA</span></p>
+  <h3>B.3 Cómo se agregan varios organismos sin sumar mal</h3>
+  <div class="cols">
+    <div class="box"><ul>
+      <li>VaR y TVaR se calculan sobre la suma año por año, nunca sumando los de cada organismo.</li>
+      <li>El evento del nodo raíz se modela una sola vez: cae para todos el mismo día.</li>
+    </ul></div>
+    <div class="box"><ul>
+      <li>Donde hay evento común no se agrega además una correlación.</li>
+      <li>La pérdida transferida se cuenta en el nodo o en el dependiente, nunca en los dos.</li>
+    </ul></div>
+  </div>
+  <h3>B.4 Cómo esto orienta el presupuesto</h3>
+  <p>Para cada control candidato se compara cuánto baja la pérdida esperada y la cola de todo el Estado, no solo la del organismo que lo paga. El control en el nodo raíz suele ganar porque reduce un evento que se multiplica por todos los dependientes, pero no siempre: la pregunta correcta es cuánto riesgo del Estado compra cada peso en el lugar del grafo donde se gasta.</p>
+
+  <div class="renaper">
+    <h3>El caso RENAPER, para entender la idea <span class="tag t-ilu">ILUSTRATIVO</span></h3>
+    <p>Armamos una simulación con el servicio de validación del RENAPER como nodo raíz y tres escenarios, uno por cada propiedad de la información: la caída del servicio durante días (A), una exposición masiva de datos de identidad (B) y la aceptación de identidades suplantadas con deepfakes o ataques a la prueba de vida (C). Los números no describen el riesgo real del RENAPER: los parámetros de bancos, fraude y ciudadanos no tienen fuente pública. Sirven para mostrar tres cosas.</p>
+    <div class="chart" role="img" aria-label="Pérdida esperada por componente">
+      <h4>1. La mayor parte de la pérdida cae afuera del nodo: unas 4 veces la propia</h4>
+      <div class="row"><span>RENAPER (propia)</span><div class="track"><div class="bar own" style="width:50.6%"></div></div><span class="val">USD 0,65 M</span></div>
+      <div class="row"><span>Ciudadanos</span><div class="track"><div class="bar" style="width:100%"></div></div><span class="val">USD 1,29 M</span></div>
+      <div class="row"><span>Bancos y fintech</span><div class="track"><div class="bar" style="width:85.2%"></div></div><span class="val">USD 1,10 M</span></div>
+      <div class="row"><span>Trámites, justicia y organismos</span><div class="track"><div class="bar" style="width:14.9%"></div></div><span class="val">USD 0,19 M</span></div>
+    </div>
+    <div class="chart" role="img" aria-label="Error de agregación">
+      <h4>2. Si cada dependiente simula su propia caída, la cola se achica 28%</h4>
+      <div class="row"><span>Evento común (correcto)</span><div class="track"><div class="bar" style="width:100%"></div></div><span class="val">USD 107,4 M</span></div>
+      <div class="row"><span>Dependientes independientes</span><div class="track"><div class="bar bad" style="width:71.5%"></div></div><span class="val">USD 76,8 M</span></div>
+    </div>
+    <div class="chart" role="img" aria-label="Reducción por control">
+      <h4>3. La raíz no siempre gana: reducción de la pérdida esperada por control</h4>
+      <div class="row"><span>Raíz: −40% exposición</span><div class="track"><div class="bar own" style="width:100%"></div></div><span class="val">USD 0,99 M</span></div>
+      <div class="row"><span>Bancos: antifraude</span><div class="track"><div class="bar" style="width:59.7%"></div></div><span class="val">USD 0,59 M</span></div>
+      <div class="row"><span>Raíz: prueba de vida</span><div class="track"><div class="bar own" style="width:17.6%"></div></div><span class="val">USD 0,17 M</span></div>
+      <div class="row"><span>Raíz: redundancia</span><div class="track"><div class="bar own" style="width:12.8%"></div></div><span class="val">USD 0,13 M</span></div>
+    </div>
+    <p class="note">Pérdida esperada anual del Estado: USD 3,23 M. Cola medida como TVaR 99%. Simulación de 100.000 años. El antifraude bancario le gana a la redundancia y a la prueba de vida del RENAPER porque actúa sobre dos escenarios a la vez (exposición y suplantación), y en los dos la pérdida termina siendo fraude que se materializa en bancos y ciudadanos. Ese control lo pagan los bancos y lo regula el BCRA, así que la decisión pasa a ser también regulatoria. Para verlo en vivo: <a href="demo.html">demo interactiva</a>.</p>
+  </div>
+</section>
+
+<section id="s26">
+  <h2><span class="n">2.6 · BLOQUE F</span>Para qué se usó y qué respuestas abrió</h2>
+  <p>Los ejemplos con fuente son pocos y casi todos de un solo estado de EE.UU. Para cada uso, la pregunta que antes no se podía contestar.</p>
+  <h3>F.1 Priorizar presupuesto y justificarlo ante Hacienda o la JGM</h3>
+  <p>En Virginia el modelo ayudó a priorizar decisiones de TI; CISA (2020) declaró como propósito informar la asignación de recursos federales. No encontramos ningún caso de una estimación FAIR presentada ante un Legislativo o un área de Hacienda. NASCIO y Deloitte (abril de 2026): 16% de los responsables de seguridad estatales informaron recortes de presupuesto. <b>Pregunta:</b> ¿cuánto riesgo del Estado compra cada peso?</p>
+  <h3>F.2 Decidir qué proveedores críticos auditar primero</h3>
+  <p>Virginia cuantifica el riesgo de sus proveedores con una metodología propia; el NY Fed señaló a los proveedores que conectan bancos como fuente de riesgo sistémico. IFX y GTD son los contrafácticos. <b>Pregunta:</b> ¿qué contrato concentra más pérdida transferida a otros organismos?</p>
+  <h3>F.3 Definir apetito y tolerancia al riesgo</h3>
+  <p>Ningún gobierno expresa su apetito cibernético en dinero; Colombia admite apetito cuantitativo en salarios mínimos. <b>Pregunta:</b> ¿qué pérdida anual tolera el Estado en un año de 1 en 20 o de 1 en 100?</p>
+  <h3>F.4 Dimensionar seguros o fondos de contingencia</h3>
+  <p>Es el caso mejor documentado: el modelo de Virginia ayudó al Tesoro a determinar la cobertura, que subió en algunos casos y bajó en otros. Costa Rica financió parte de la respuesta con su Fondo Nacional de Emergencias, sin cuantificación previa. En Argentina, 85% de los entes declara no tener seguros vigentes sobre sus activos. <b>Pregunta:</b> ¿cuánto retener, cuánto transferir y de qué tamaño tiene que ser un fondo de contingencia?</p>
+  <h3>F.5 Planificar la continuidad de servicios esenciales</h3>
+  <p>El registro británico cuantifica escenarios de peor caso en bandas; la Disposición CNC 1/2026 pide RTO y RPO sin montos. <b>Pregunta:</b> ¿cuánto vale bajar el tiempo de recuperación de un sistema, contando la pérdida evitada en los organismos que dependen de él?</p>
+  <h3>F.6 Informar a órganos de control y al Poder Legislativo</h3>
+  <p>NIST IR 8286 Rev. 1 prevé informar los riesgos en dinero al Congreso, la OMB y la GAO; SIGEN ya produce un mapa de riesgos de todo el SPN en puntaje. No encontramos ningún informe de control que calcule en dinero pérdidas evitadas por controles. <b>Pregunta:</b> ¿cuál es la exposición agregada del SPN y cómo cambió con el presupuesto ejecutado?</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Uso</th><th>Ejemplo real con fuente</th><th>Pregunta que se abre</th></tr></thead>
+    <tbody>
+      <tr><td class="org">Presupuesto</td><td>Virginia (VITA 2020); CISA (2020)</td><td>¿Cuánto riesgo del Estado compra cada peso?</td></tr>
+      <tr><td class="org">Proveedores críticos</td><td>Virginia; NY Fed. Contrafácticos: IFX y GTD</td><td>¿Qué contrato concentra más pérdida transferida?</td></tr>
+      <tr><td class="org">Apetito de gobierno</td><td>No encontrado en dinero; Colombia en bandas</td><td>¿Qué pérdida de 1 en 20 tolera el Estado?</td></tr>
+      <tr><td class="org">Seguros y fondos</td><td>Virginia: el modelo ayudó al Tesoro a determinar la cobertura</td><td>¿Cuánto retener y cuánto transferir?</td></tr>
+      <tr><td class="org">Continuidad</td><td>Registro británico (bandas); Disp. CNC 1/2026 (sin montos)</td><td>¿Cuánto vale bajar el tiempo de recuperación?</td></tr>
+      <tr><td class="org">Control y Legislativo</td><td>NIST IR 8286 Rev. 1; NAO; SIGEN (puntaje)</td><td>¿Cuál es la exposición agregada y cómo cambió?</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<div class="chap" id="t3"><span class="cn">3.</span><h2>Tabla de incidentes (Argentina y región)</h2></div>
+<p class="sub">La columna de costo estimable es inferencia nuestra: indica con qué cuenta podría estimarse, no un monto. Ningún incidente argentino tiene costo documentado.</p>
+<div class="tbl"><table class="wide">
+  <thead><tr><th>Organismo</th><th>Fecha</th><th>Tipo</th><th>Qué se comprometió</th><th>Sectores afectados aguas abajo</th><th>Costo documentado</th><th>Costo estimable</th><th>Fuentes</th></tr></thead>
+  <tbody>
+    <tr><td class="org">RENAPER (vía credencial del Ministerio de Salud)</td><td>9 a 19/10/2021; reapariciones en abril de 2024</td><td>Uso indebido de credencial de un organismo consumidor; venta de consultas</td><td>Fotos de DNI, número de trámite, datos filiatorios; volumen real desconocido</td><td>Ciudadanos; bancos y fintech; justicia (habeas data)</td><td>Ninguno</td><td>Fraude: identidades explotadas × tasa de éxito × pérdida media; renovación de DNI; rediseño del servicio</td><td class="src">Comunicado RENAPER 13/10/2021; The Record; Perfil; La Nación 9/4/2024; Chequeado; BCRA CIMPRA 533; CCAF Sala V 13/2/2025</td></tr>
+    <tr><td class="org">Ministerio de Salud de la Nación</td><td>22 y 23/10/2022</td><td>Compromiso de cuenta de correo; envíos masivos</td><td>Canal oficial de correo; supuesto listado de pacientes no autenticado</td><td>Ciudadanos (phishing con remitente oficial); usuarios del SISA</td><td>Ninguno</td><td>Respuesta y reemisión de credenciales</td><td class="src">BAE Negocios; Los Andes; ESET</td></tr>
+    <tr><td class="org">Poder Judicial de la Nación</td><td>22 a 25/10/2016</td><td>Ataque a proveedor internacional; caída del portal</td><td>Disponibilidad del portal y del sistema de gestión</td><td>Litigantes y abogados; 2 días inhábiles en toda la justicia nacional y federal</td><td>Ninguno</td><td>Presupuesto diario × 2 días × fracción de actividad perdida</td><td class="src">Res. CSJN 3019/2016; Diario Judicial</td></tr>
+    <tr><td class="org">Poder Judicial de la Nación (VPN y enlaces)</td><td>Septiembre de 2024</td><td>Denegación de servicio contra el proveedor</td><td>Disponibilidad de enlaces</td><td>Defensa pública y fiscalías</td><td>Ninguno</td><td>Horas de inactividad × costo horario</td><td class="src">Diario Judicial 18/9/2024 (fuente única)</td></tr>
+    <tr><td class="org">Poder Judicial de Córdoba</td><td>13/8/2022</td><td>Ransomware (Play)</td><td>Disponibilidad de servicios y bases</td><td>Litigantes, víctimas de violencia familiar, personas privadas de libertad; al menos 7 días hábiles inhábiles, posiblemente 9</td><td>Ninguno</td><td>Presupuesto diario × días inhábiles × fracción perdida</td><td class="src">Acuerdos Reglamentarios 1778 y 1780; Cadena 3; La Voz</td></tr>
+    <tr><td class="org">Poder Judicial del Chaco</td><td>Enero de 2022</td><td>Ransomware (Hive, según la empresa contratada)</td><td>Disponibilidad; escritos de inicio del 4/9 al 23/12/2021 no recuperados</td><td>Litigantes; términos suspendidos hasta el 11/2/2022</td><td>Ninguno</td><td>Escritos perdidos × costo de reingreso</td><td class="src">Diario Judicial</td></tr>
+    <tr><td class="org">Suprema Corte de Buenos Aires</td><td>2/4/2026</td><td>Filtración de un repositorio</td><td>Información sobre integrantes del Poder Judicial</td><td>Magistrados y funcionarios</td><td>Ninguno</td><td>Notificación y monitoreo por persona</td><td class="src">Comunicado SCBA; Diario Judicial</td></tr>
+    <tr><td class="org">Dirección Nacional de Migraciones</td><td>27/8/2020</td><td>Ransomware (NetWalker); rescate de unos USD 4 M no pagado</td><td>Sistema de control migratorio inoperable; unos 2 GB publicados</td><td>Fronteras cerradas unas 4 horas; seguridad (órdenes judiciales, Interpol)</td><td>Ninguno</td><td>Pasajeros por hora × horas × valor del tiempo</td><td class="src">Proyecto HCDN 4750-D-2020; Cadena 3; Todo Jujuy</td></tr>
+    <tr><td class="org">PAMI</td><td>2/8/2023</td><td>Ransomware (Rhysida); datos publicados</td><td>Atención y recetas; DNI, credenciales y gastos de afiliados</td><td>Afiliados, prestadores y farmacias; ANMAT (vínculo no confirmado)</td><td>Ninguno</td><td>Días de emergencia × costo extra por receta</td><td class="src">Noticias NQN; Forbes Argentina; ESET; Ámbito</td></tr>
+    <tr><td class="org">Comisión Nacional de Valores</td><td>7/6/2023</td><td>Ransomware (Medusa); pedido de USD 500.000</td><td>Plataformas fuera de línea; datos calificados de públicos</td><td>Emisores y mercado de capitales</td><td>Ninguno</td><td>Días de plataforma caída × costo para los regulados</td><td class="src">Comunicado CNV; Forbes Argentina</td></tr>
+    <tr><td class="org">Senado de la Nación</td><td>12/1/2022</td><td>Ransomware (Vice Society)</td><td>Disponibilidad; datos publicados en marzo</td><td>Ciudadanía (transparencia); empleados</td><td>Ninguno</td><td>Respuesta y recuperación</td><td class="src">La Gaceta; Río Negro; ESET</td></tr>
+    <tr><td class="org">Costa Rica (Hacienda e instituciones) y CCSS</td><td>17/4 y 31/5/2022</td><td>Ransomware (Conti y Hive); emergencia nacional</td><td>Recaudación, aduanas, salarios, expediente digital de salud</td><td>Comercio exterior, salud, todo el sector público, pensiones</td><td class="num">₡13.418.907.369,59 (CNE). Contraloría: ₡287.892 M sin imputar; ₡8.100 M de salarios de más</td><td>Unos USD 19,4 a 19,7 M con tipo de cambio supuesto</td><td class="src">Decreto 43542-MP-MICITT; DPL News; CRHoy; Semanario Universidad</td></tr>
+    <tr><td class="org">IFX Networks (Colombia)</td><td>12/9/2023</td><td>Ransomware en proveedor de nube y telecomunicaciones</td><td>Nube privada de la Rama Judicial y sistemas de salud</td><td>Justicia de todo el país (5 días hábiles); prescripción; registro de nacimientos y defunciones</td><td>Ninguno en dinero</td><td>Días de términos suspendidos × costo diario</td><td class="src">Acuerdo PCSJA23-12089; Circular Minsalud 011/2023; El Heraldo; Portafolio</td></tr>
+    <tr><td class="org">HSE (Irlanda)</td><td>16/3 a 14/5/2021</td><td>Ransomware (Conti) tras phishing</td><td>TI de salud de todo el país; datos de pacientes</td><td>Pacientes, hospitales, justicia (473 demandas)</td><td class="num">€102.099.792; mejoras estimadas en unos €657 M</td><td>No hace falta</td><td class="src">Informe PwC; respuestas parlamentarias 2024 y 2025</td></tr>
+    <tr><td class="org">Atlanta (EE.UU.)</td><td>22/3/2018</td><td>Ransomware (SamSam)</td><td>Sistemas municipales</td><td>Servicios y trámites municipales</td><td class="num">Contratos de emergencia por unos USD 2,6 a 2,7 M</td><td>Hasta USD 17 M según un informe sin autor</td><td class="src">DOJ 28/11/2018; Atlanta Journal-Constitution</td></tr>
+    <tr><td class="org">Baltimore (EE.UU.)</td><td>7/5/2019</td><td>Ransomware (RobbinHood)</td><td>Sistemas municipales</td><td>Recaudación, trámites inmobiliarios, multas</td><td class="num">USD 18,2 M (10 M de recuperación + 8,2 M de ingresos)</td><td>No hace falta</td><td class="src">AP; GovTech; Baltimore Sun</td></tr>
+    <tr><td class="org">Superior Tribunal de Justicia (Brasil)</td><td>3/11/2020</td><td>Ransomware</td><td>Procesos y correo</td><td>Justicia federal (una semana de plazos suspendidos)</td><td>Ninguno</td><td>Días suspendidos × costo diario</td><td class="src">Migalhas; ConJur</td></tr>
+    <tr><td class="org">Ministerio de Salud (Brasil)</td><td>10/12/2021</td><td>Destrucción y copia de datos (Lapsus$)</td><td>Certificados de vacunación y notificación epidemiológica</td><td>Vigilancia epidemiológica; ciudadanos (13 días sin certificado)</td><td>Ninguno</td><td>No monetizable sin modelo sanitario</td><td class="src">Policía Federal (vía Poder360 y CNN Brasil)</td></tr>
+    <tr><td class="org">GTD (Chile)</td><td>23/10/2023</td><td>Ransomware en proveedor de infraestructura</td><td>Datacenter, telefonía, VPN</td><td>Fondo nacional de salud, firmas digitales, más de 77 municipios</td><td>Ninguno</td><td>Días de indisponibilidad por servicio</td><td class="src">BleepingComputer; El Mostrador; Diario Financiero</td></tr>
+    <tr><td class="org">SEDENA (México)</td><td>Septiembre de 2022</td><td>Exfiltración (Guacamaya)</td><td>Al menos 6 TB de correos y archivos</td><td>Defensa y seguridad</td><td>Ninguno</td><td>No estimable con datos públicos</td><td class="src">The Record; Expansión</td></tr>
+  </tbody>
+</table></div>
+
+<div class="chap" id="t4"><span class="cn">4.</span><h2>Tabla comparativa de países</h2></div>
+<p class="sub">Uso real documentado significa respaldado por un documento del propio gobierno o por una fuente independiente. Las declaraciones del FAIR Institute o de proveedores no cuentan.</p>
+<div class="tbl"><table class="wide">
+  <thead><tr><th>País u organismo</th><th>Marco o método</th><th>Quién lo exige</th><th>¿Cuantifica en dinero?</th><th>Uso real documentado</th><th>Fuentes</th></tr></thead>
+  <tbody>
+    <tr><td class="org">Estados Unidos (federal)</td><td>FISMA y NIST RMF (SP 800-37 Rev. 2), SP 800-30 Rev. 1, serie IR 8286 (Rev. 1, diciembre de 2025); OMB A-123 (10/03/2026); CISA (funciones críticas)</td><td>Congreso (FISMA), OMB; NIST como guía</td><td class="mid-c">No obligatorio. NIST prefiere los métodos cuantitativos y cita Open FAIR</td><td>Ninguna agencia federal con documento propio de uso de FAIR. CISA (2020) cuantifica costos para asignar recursos</td><td class="src">CSRC NIST; OMB A-123 2026; CISA OCE 2020; GAO-19-384; GAO-22-104256; CEA 2018</td></tr>
+    <tr><td class="org">Estados Unidos (estados)</td><td>Variable según el estado</td><td>Cada estado</td><td class="yes-c">Virginia, sí</td><td>Virginia (2020): modelo cuantitativo que ayudó al Tesoro estatal a determinar la cobertura de seguro y a priorizar decisiones; según la prensa, versión modificada de FAIR</td><td class="src">Informe VITA 2020 (p. 4 y 21); StateScoop 18/11/2019</td></tr>
+    <tr><td class="org">Francia</td><td>EBIOS Risk Manager v1.5 (2024); guía ANSSI–AMRAE (2019)</td><td>ANSSI, bajo la SGDSN; EBIOS es referencia</td><td class="mid-c">EBIOS no. La guía recomienda valorizar en euros los peores escenarios</td><td>Sin uso de FAIR. La Cour des comptes pidió traducción presupuestaria plurianual</td><td class="src">cyber.gouv.fr; guía ANSSI–AMRAE (p. 19 a 23); Cour des comptes 16/06/2025</td></tr>
+    <tr><td class="org">Reino Unido</td><td>National Risk Register 2025; Orange Book (2023); Government Cyber Action Plan (2026)</td><td>Cabinet Office, HM Treasury, DSIT</td><td class="yes-c">Sí, en bandas de orden de magnitud</td><td>Sin FAIR. Cuantificación nacional en bandas y estimación de terceros (14.700 M de libras, 0,5% del PIB)</td><td class="src">NRR 2025 (p. 12 a 14); NAO 29/01/2025; DSIT/KPMG 2025</td></tr>
+    <tr><td class="org">Unión Europea</td><td>NIS2 (art. 21); ENISA</td><td>Parlamento y Consejo; Estados miembros</td><td class="no-c">No</td><td>Sin marco de ENISA para cuantificar en dinero</td><td class="src">Directiva 2022/2555; ENISA Threat Landscape 2026</td></tr>
+    <tr><td class="org">OCDE y multilaterales</td><td>Recomendación de la OCDE; Banco Mundial; BID y OEA</td><td>Adhesión voluntaria</td><td class="no-c">No (solo estimaciones macro)</td><td>Estimaciones de daño en porcentaje del PIB, sin uso por gobiernos</td><td class="src">OCDE; Banco Mundial 2024; BID/OEA 2020 y 2025</td></tr>
+    <tr><td class="org">Colombia</td><td>Guía de riesgo de Función Pública v6 (2022) y v7 (2025)</td><td>Función Pública, para entidades públicas</td><td class="yes-c">Sí, en bandas de salarios mínimos</td><td>Escala monetaria en una guía oficial; no FAIR</td><td class="src">Guía v6 (p. 42); guía v7</td></tr>
+    <tr><td class="org">Brasil</td><td>Política Nacional de Ciberseguridad (Decreto 11.856/2023); auditorías del TCU</td><td>Presidencia; el TCU audita</td><td class="no-c">No (madurez de controles)</td><td>No; el TCU mide madurez (Acórdão 2387/2024)</td><td class="src">TCU; Planalto</td></tr>
+    <tr><td class="org">Argentina</td><td>DA 641/2021; Res. 44/2023; DNU 941/2025; Disp. CNC 1/2026; SIGEN (Mapa de Riesgos)</td><td>JGM, CNC, SIGEN</td><td class="no-c">No. Impacto por dimensiones sin montos; SIGEN puntúa el impacto sobre otros entes</td><td>Sin uso de FAIR ni cuantificación económica del riesgo cibernético en el SPN</td><td class="src">argentina.gob.ar; SIGEN, Mapa de Riesgos 2024</td></tr>
+  </tbody>
+</table></div>
+
+<footer>
+  <p>El informe completo en Word trae, además, la propuesta de piloto, los datos a pedir al Estado, los límites del enfoque, el anexo de verificación de cada cifra y la bibliografía con 148 enlaces. Lo no verificable no se usa como dato, por ejemplo el 2,4% del PIB atribuido a Costa Rica o los 65 millones de registros del RENAPER.</p>
+  <p>Joaquín Galermes · Safe-U · octubre de 2026.</p>
+</footer>
+</main>
+</div>
+<script>
+(function(){
+  var b = document.getElementById("themeBtn");
+  function set(t){document.documentElement.setAttribute("data-theme", t); b.textContent = t === "dark" ? "Modo claro" : "Modo oscuro"; try{localStorage.setItem("fair-estado-tema", t);}catch(e){}}
+  var t0 = "light"; try{t0 = localStorage.getItem("fair-estado-tema") || "light";}catch(e){}
+  set(t0);
+  b.addEventListener("click", function(){set(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");});
+})();
+</script>
+
+</body>
+</html>
