@@ -101,6 +101,21 @@ a{color:var(--petrol)}
 a:focus-visible{outline:2px solid var(--ochre);outline-offset:2px}
 footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
 footer p{max-width:none}
+.mapwrap{overflow-x:auto;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:10px;margin:10px 0}
+.natmap{min-width:720px;display:block}
+.natmap text{font-family:var(--f-body);font-size:13px;text-anchor:middle}
+.natmap .colh{font-size:11px;letter-spacing:.08em;fill:var(--muted);font-weight:700}
+.natmap .n-root rect{fill:var(--petrol)}
+.natmap .n-root text{fill:var(--on-petrol);font-weight:700}
+.natmap .n-root text.t2{font-weight:400;font-size:11px}
+.natmap .n-dep rect{fill:var(--paper);stroke:var(--petrol-2);stroke-width:1.6}
+.natmap .n-dep text{fill:var(--ink);font-weight:600}
+.natmap .n-vec rect{fill:var(--bg);stroke:var(--muted);stroke-dasharray:4 3}
+.natmap .n-vec text{fill:var(--ink);font-size:12px}
+.natmap .e-doc path{fill:none;stroke:var(--petrol-2);stroke-width:2;marker-end:url(#ma)}
+.natmap .e-inf path{fill:none;stroke:var(--ochre);stroke-width:2;stroke-dasharray:6 5;marker-end:url(#mb)}
+.natmap .e-cred{fill:none;stroke:var(--muted);stroke-width:2;stroke-dasharray:3 4;marker-end:url(#mb)}
+.natmap .m-fill{fill:var(--petrol-2)}.natmap .m-fill2{fill:var(--ochre)}
 .hdr-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
 .hbtn{font:inherit;font-size:13.5px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:5px;padding:8px 14px;cursor:pointer;text-decoration:none;display:inline-block}
 .hbtn:hover{border-color:var(--petrol);color:var(--petrol)}
@@ -121,10 +136,13 @@ footer p{max-width:none}
   <a class="s" href="#s22">2.2 Bloque A. FAIR en un organismo</a>
   <a class="s" href="#s23">2.3 Bloque E. Otros gobiernos y Argentina</a>
   <a class="s" href="#s24">2.4 Resumen de los incidentes</a>
-  <a class="s" href="#s25">2.5 Bloque B. Riesgo de dependencias</a>
+  <a class="s" href="#s25">2.5 Bloque B. Dependencias del Estado</a>
   <a class="s" href="#s26">2.6 Bloque F. Usos y respuestas</a>
+  <a class="s" href="#s27">2.7 Bloque G. Límites</a>
   <a href="#t3">3. Tabla de incidentes</a>
   <a href="#t4">4. Tabla comparativa de países</a>
+  <a href="#t5">5. Piloto</a>
+  <a href="#t6">6. Datos a pedir</a>
 </nav>
 
 <main>
@@ -259,8 +277,9 @@ footer p{max-width:none}
   <h3>E.4 Unión Europea y organismos multilaterales</h3>
   <p>NIS2 alcanza a la administración pública central y exige gestión de riesgos y de cadena de suministro, sin cuantificar en dinero. ENISA ubica a la administración pública como el sector más atacado (31,8%). El Banco Mundial informa que el 36% de los incidentes divulgados en países en desarrollo apuntan al Estado. El BID y la OEA estimaron en 2020 que los daños podrían superar el 1% del PIB en algunos países de la región.</p>
 
-  <h3>E.5 Otros países</h3>
-  <p>Colombia es el único país relevado cuya guía oficial de riesgo del sector público fija bandas en dinero: en salarios mínimos, de leve (menos de 10) a catastrófico (más de 500), también para seguridad de la información. Brasil mide madurez de controles (el TCU encontró que ninguna de 229 organizaciones federales implementa las 56 medidas). Chile creó la ANCI en 2024. Países Bajos tiene la línea base BIO2. En Alemania, Israel, los nórdicos, Uruguay y México no encontramos cuantificación en dinero.</p>
+  <h3>E.5 Otros países, con foco en América Latina</h3>
+  <p>Colombia es el único país relevado cuya guía oficial de riesgo del sector público fija bandas en dinero: en salarios mínimos, de leve (menos de 10) a catastrófico (más de 500), también para seguridad de la información. Brasil mide madurez de controles (el TCU encontró que ninguna de 229 organizaciones federales implementa las 56 medidas). Chile creó la ANCI en 2024. Países Bajos tiene la línea base BIO2. En Alemania, Israel y los nórdicos no encontramos cuantificación en dinero.</p>
+  <p>En el resto de América Latina el patrón se repite: estrategias nacionales recientes, organismos rectores nuevos y marcos de madurez de controles, sin cuantificación en dinero del riesgo del Estado. Uruguay hizo obligatorio en 2025 el Marco de Ciberseguridad de AGESIC con un nivel de madurez mínimo por perfil (Decreto 66/2025), que alcanza también a los privados que prestan servicios críticos al Estado. Chile creó la ANCI con la Ley 21.663 (2024). México emitió en diciembre de 2025 una Política General de Ciberseguridad para la administración federal. Perú reglamentó en 2025 su Marco de Confianza Digital. Costa Rica aprobó su estrategia 2023-2027 después de la emergencia de 2022, con la gestión de riesgos como pilar. Paraguay (2025), Ecuador (2021) y República Dominicana (2022) tienen estrategias nacionales vigentes. Ninguno de los documentos que revisamos expresa el riesgo del Estado en dinero, salvo Colombia con sus bandas de salarios mínimos. La tabla 4 resume cada país.</p>
 
   <h3>E.6 La Argentina: marco vigente</h3>
   <div class="tbl"><table>
@@ -322,36 +341,102 @@ footer p{max-width:none}
 </section>
 
 <section id="s25">
-  <h2><span class="n">2.5 · BLOQUE B</span>Riesgo sistémico y de dependencias</h2>
-  <h3>B.1 Las raíces de confianza del Estado</h3>
+  <h2><span class="n">2.5 · BLOQUE B</span>Riesgo sistémico y de dependencias del Estado nacional</h2>
+  <p>El riesgo que interesa no es el de un organismo aislado sino el del Sector Público Nacional como red. Un puñado de servicios transversales sostiene a muchos otros: la identidad, la gestión documental, la recaudación, la seguridad social, la infraestructura de datos compartida, los controles de frontera. Cuando uno de ellos falla, la pérdida se propaga a otros organismos, al sistema financiero, a la justicia y a los ciudadanos. El análisis tiene que empezar por ese mapa.</p>
+
+  <h3>B.1 Mapa de dependencias del Estado nacional</h3>
+  <p class="sub">Líneas continuas: dependencia documentada en una norma o en un incidente. Líneas punteadas: dependencia que inferimos y que el piloto tendría que confirmar. La flecha que entra al RENAPER es una credencial: superficie de ataque, no dependencia.</p>
+  <div class="mapwrap">
+  <svg viewBox="0 0 940 560" width="100%" role="img" aria-label="Mapa de dependencias del Estado nacional" class="natmap">
+    <defs>
+      <marker id="ma" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="m-fill"/></marker>
+      <marker id="mb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="m-fill2"/></marker>
+    </defs>
+    <text x="360" y="22" class="colh" text-anchor="middle">NODOS RAÍZ DEL ESTADO</text>
+    <text x="770" y="22" class="colh" text-anchor="middle">QUIÉN DEPENDE</text>
+    <!-- aristas -->
+    <g class="e-doc">
+      <path d="M455,62 C560,62 590,60 675,60"/>
+      <path d="M455,62 C560,80 580,128 675,132"/>
+      <path d="M455,62 C560,95 580,190 675,204"/>
+      <path d="M455,137 C560,140 580,200 675,204"/>
+      <path d="M455,137 C560,137 580,132 675,132"/>
+      <path d="M455,212 C560,240 580,340 675,348"/>
+      <path d="M455,287 C560,287 580,140 675,132"/>
+      <path d="M455,287 C560,310 580,410 675,420"/>
+      <path d="M455,362 C560,362 580,280 675,276"/>
+      <path d="M455,437 C560,437 580,490 675,492"/>
+      <path d="M455,437 C560,420 590,290 675,276"/>
+    </g>
+    <g class="e-inf">
+      <path d="M455,212 C560,212 590,206 675,206"/>
+      <path d="M455,362 C560,330 600,215 675,208"/>
+      <path d="M455,512 C560,512 580,220 675,210"/>
+    </g>
+    <path d="M150,62 C200,62 230,62 262,62" class="e-cred"/>
+    <!-- nodos raíz -->
+    <g class="n-root">
+      <rect x="265" y="40" width="190" height="44" rx="6"/><text x="360" y="58">RENAPER</text><text x="360" y="74" class="t2">identidad y biometría</text>
+      <rect x="265" y="115" width="190" height="44" rx="6"/><text x="360" y="133">GDE y TAD</text><text x="360" y="149" class="t2">expedientes de todo el SPN</text>
+      <rect x="265" y="190" width="190" height="44" rx="6"/><text x="360" y="208">ARCA</text><text x="360" y="224" class="t2">recaudación y aduana</text>
+      <rect x="265" y="265" width="190" height="44" rx="6"/><text x="360" y="283">ANSES y PAMI</text><text x="360" y="299" class="t2">seguridad social y prestaciones</text>
+      <rect x="265" y="340" width="190" height="44" rx="6"/><text x="360" y="358">Infraestructura compartida</text><text x="360" y="374" class="t2">ARSAT y proveedores de red</text>
+      <rect x="265" y="415" width="190" height="44" rx="6"/><text x="360" y="433">Migraciones</text><text x="360" y="449" class="t2">control de fronteras</text>
+      <rect x="265" y="490" width="190" height="44" rx="6"/><text x="360" y="508">Mi Argentina y firma digital</text><text x="360" y="524" class="t2">canal digital del ciudadano</text>
+    </g>
+    <!-- vector -->
+    <g class="n-vec"><rect x="20" y="40" width="130" height="44" rx="6"/><text x="85" y="58">Credenciales de</text><text x="85" y="74">consumidores</text></g>
+    <!-- dependientes -->
+    <g class="n-dep">
+      <rect x="675" y="38" width="190" height="44" rx="6"/><text x="770" y="65">Bancos y fintech</text>
+      <rect x="675" y="110" width="190" height="44" rx="6"/><text x="770" y="137">Ciudadanos</text>
+      <rect x="675" y="182" width="190" height="44" rx="6"/><text x="770" y="209">Organismos del SPN</text>
+      <rect x="675" y="254" width="190" height="44" rx="6"/><text x="770" y="281">Justicia y seguridad</text>
+      <rect x="675" y="326" width="190" height="44" rx="6"/><text x="770" y="353">Comercio exterior</text>
+      <rect x="675" y="398" width="190" height="44" rx="6"/><text x="770" y="425">Prestadores y farmacias</text>
+      <rect x="675" y="470" width="190" height="44" rx="6"/><text x="770" y="497">Transporte internacional</text>
+    </g>
+  </svg>
+  </div>
+
   <div class="tbl"><table>
-    <thead><tr><th>Nodo raíz</th><th>Quién depende (documentado)</th><th>Cómo falla</th></tr></thead>
+    <thead><tr><th>Nodo raíz</th><th>Qué presta</th><th>Quién depende y cómo lo sabemos</th><th>Cómo puede fallar</th><th>Estado</th></tr></thead>
     <tbody>
-      <tr><td class="org">RENAPER, Sistema de Identidad Digital</td><td>Bancos (el BCRA recomienda validar biometría contra el RENAPER y exige su constancia de CUIL para abrir cuentas), organismos por convenio, Mi Argentina</td><td>Confidencialidad y abuso de acceso legítimo (2021)</td></tr>
-      <tr><td class="org">Credenciales de organismos con muchos usuarios externos</td><td>Prestadores, provincias y el propio RENAPER</td><td>Credenciales en venta; puerta de entrada a nodos raíz</td></tr>
-      <tr><td class="org">Proveedores compartidos de nube y conectividad</td><td>Justicia nacional (2016 y 2024); en la región, justicia y salud de Colombia, gobierno de Chile</td><td>Disponibilidad; evento común simultáneo</td></tr>
-      <tr><td class="org">Nodos de servicio (recaudación, seguridad social, PAMI)</td><td>Comercio exterior, prestadores, farmacias</td><td>Disponibilidad medida en días</td></tr>
+      <tr><td class="org">RENAPER (Sistema de Identidad Digital)</td><td>Validación de identidad en tiempo real con foto y biometría</td><td>Bancos: el BCRA recomienda validar la biometría contra el RENAPER y exige su constancia de CUIL o la de la ANSES para abrir cuentas (CIMPRA 533). Firma digital remota: el Decreto 743/2024 permite validar la identidad en tiempo real contra el RENAPER. DNI digital en Mi Argentina (Decreto 744/2019)</td><td>Abuso de una credencial de consumidor (2021); suplantación biométrica; caída del servicio</td><td class="yes-c">Documentado</td></tr>
+      <tr><td class="org">GDE y TAD</td><td>Expediente electrónico y trámites a distancia</td><td>El Decreto 561/2016 obliga a todo el SPN (art. 8 de la Ley 24.156) a usar GDE para la totalidad de sus actuaciones. El Decreto 1063/2016 crea TAD como canal de presentaciones y notificaciones de ciudadanos y empresas</td><td>Una plataforma única para todos los organismos: un evento en ella es un evento común del SPN. No encontramos incidentes públicos</td><td class="mid-c">Dependencia documentada; falla inferida</td></tr>
+      <tr><td class="org">ARCA</td><td>Recaudación, control aduanero y recursos de la seguridad social</td><td>Creada por el Decreto 953/2024, que disuelve la AFIP y le transfiere esas funciones. Comercio exterior y financiamiento de la seguridad social dependen de ella</td><td>Ransomware sobre recaudación y aduana. Antecedente regional: Hacienda de Costa Rica, 2022, con emergencia nacional</td><td class="mid-c">Funciones documentadas; escenario por analogía</td></tr>
+      <tr><td class="org">ANSES y PAMI</td><td>Prestaciones, jubilaciones y cobertura de salud de jubilados</td><td>PAMI 2023: régimen de emergencia para recetas; afiliados, prestadores y farmacias afectados. La constancia de CUIL de la ANSES es válida para abrir cuentas bancarias (BCRA)</td><td>Ransomware y exposición de datos de afiliados</td><td class="yes-c">Documentado (PAMI)</td></tr>
+      <tr><td class="org">Infraestructura compartida</td><td>Centro de datos, nube y conectividad</td><td>ARSAT opera un centro de datos que aloja aplicaciones de organismos públicos; en 2021 firmó con la AFIP un esquema de contingencia entre centros de datos (prensa). La justicia nacional cayó en 2016 y en 2024 por ataques a su proveedor de conectividad</td><td>Un evento en el proveedor golpea a todos sus clientes a la vez (Colombia y Chile, 2023)</td><td class="mid-c">Documentado con matiz</td></tr>
+      <tr><td class="org">Migraciones</td><td>Control de ingreso y egreso</td><td>2020: sin el sistema de captura migratoria, cinco pasos, Ezeiza y Buquebus cerrados unas 4 horas, sin chequeo de órdenes judiciales ni alertas de Interpol</td><td>Ransomware sobre un sistema único</td><td class="yes-c">Documentado</td></tr>
+      <tr><td class="org">Mi Argentina y firma digital</td><td>Canal digital del ciudadano y firma remota</td><td>Ambos se apoyan en la validación contra el RENAPER: son un dependiente que a su vez es raíz para los trámites de otros organismos</td><td>Hereda las fallas del RENAPER: es un caso de contagio de segundo orden</td><td class="mid-c">Inferido sobre normas documentadas</td></tr>
     </tbody>
   </table></div>
+  <p class="note">Faltan tres inventarios que no encontramos publicados y que harían este mapa completo: los convenios del servicio de identidad con su volumen de consultas, las credenciales externas que emite cada organismo con datos sensibles y qué organismo corre sobre qué contrato de nube, centro de datos o conectividad. El Mapa de Riesgos de SIGEN ya puntúa el impacto de cada ente sobre otros, y el CNC tiene mandato sobre las infraestructuras críticas de información: son los dos lugares naturales para construirlo.</p>
+
   <h3>B.2 Métodos para modelar la propagación</h3>
-  <p>CISA aporta la descomposición de 55 funciones críticas nacionales en subfunciones y dependencias, sin dinero. El mercado asegurador es el que más avanzó en montos: el escenario de Lloyd's (octubre de 2023) de ataque a un sistema de pagos estima USD 3,5 billones en cinco años, y Bashe de CyRiM (2019) llega a USD 193.000 M con 86% sin seguro, lo que convierte al Estado en asegurador de última instancia. La Reserva Federal de Nueva York estimó que si cae uno cualquiera de los cinco bancos más activos se afecta en promedio el 38% de la red. NIST aporta el proceso (IR 8286C y 8286D, SP 800-161). No encontramos una guía del FAIR Institute sobre agregación sistémica.</p>
-  <p>Proponemos un grafo dirigido: los nodos son organismos, proveedores y sectores, y cada arista lleva la fracción de la operación del dependiente que queda afectada y su pérdida por unidad de tiempo. Las credenciales que un nodo entrega se dibujan en sentido inverso, porque también son superficie de ataque. <span class="tag t-inf">INFERENCIA NUESTRA</span></p>
-  <h3>B.3 Cómo se agregan varios organismos sin sumar mal</h3>
+  <p>CISA aporta la descomposición de 55 funciones críticas nacionales en subfunciones y dependencias, sin dinero. El mercado asegurador es el que más avanzó en montos: el escenario de Lloyd's (octubre de 2023) de ataque a un sistema de pagos estima USD 3,5 billones en cinco años, y Bashe de CyRiM (2019) llega a USD 193.000 M con 86% sin seguro, lo que deja al Estado como asegurador de última instancia. La Reserva Federal de Nueva York estimó que si cae uno cualquiera de los cinco bancos más activos se afecta en promedio el 38% de la red. NIST aporta el proceso (IR 8286C y 8286D, SP 800-161). No encontramos una guía del FAIR Institute sobre agregación sistémica.</p>
+  <p>Proponemos un grafo dirigido como el de arriba: cada arista lleva la fracción de la operación del dependiente que queda afectada y su pérdida por unidad de tiempo. Hay dependencias de cuatro tipos (servicio, dato, credencial e infraestructura) y contagio de segundo orden, como Mi Argentina, que depende del RENAPER y a su vez sostiene trámites de otros organismos. <span class="tag t-inf">INFERENCIA NUESTRA</span></p>
+
+  <h3>B.3 Cómo se agregan los nodos sin sumar mal</h3>
   <div class="cols">
     <div class="box"><ul>
-      <li>VaR y TVaR se calculan sobre la suma año por año, nunca sumando los de cada organismo.</li>
-      <li>El evento del nodo raíz se modela una sola vez: cae para todos el mismo día.</li>
+      <li>VaR y TVaR se calculan sobre la suma año por año de todos los nodos y dependientes, nunca sumando los de cada uno.</li>
+      <li>El evento de un nodo raíz se modela una sola vez: cae para todos sus dependientes el mismo día.</li>
+      <li>Los proveedores compartidos son un evento común entre nodos raíz distintos: un ataque a la infraestructura compartida puede tirar varios a la vez.</li>
     </ul></div>
     <div class="box"><ul>
       <li>Donde hay evento común no se agrega además una correlación.</li>
       <li>La pérdida transferida se cuenta en el nodo o en el dependiente, nunca en los dos.</li>
+      <li>El resultado final es una curva de excedencia del Sector Público Nacional y un ranking de nodos por pérdida que transfieren.</li>
     </ul></div>
   </div>
-  <h3>B.4 Cómo esto orienta el presupuesto</h3>
-  <p>Para cada control candidato se compara cuánto baja la pérdida esperada y la cola de todo el Estado, no solo la del organismo que lo paga. El control en el nodo raíz suele ganar porque reduce un evento que se multiplica por todos los dependientes, pero no siempre: la pregunta correcta es cuánto riesgo del Estado compra cada peso en el lugar del grafo donde se gasta.</p>
+
+  <h3>B.4 Cómo esto orienta el presupuesto del Estado</h3>
+  <p>El análisis nacional se arma en cinco pasos. Primero, el inventario de nodos raíz, que puede salir del factor de impacto sobre otros entes del Mapa de Riesgos de SIGEN y del registro de infraestructuras críticas del CNC. Segundo, un escenario FAIR por nodo y por propiedad que puede fallar (disponibilidad, confidencialidad, integridad). Tercero, los eventos comunes entre nodos, empezando por los proveedores compartidos. Cuarto, la agregación en una sola curva para el SPN. Quinto, para cada control candidato, cuánto baja la pérdida de todo el Estado, no solo la del organismo que lo paga. El control en un nodo raíz suele ganar porque reduce un evento que se multiplica por todos sus dependientes, pero no siempre: la pregunta es cuánto riesgo del Estado compra cada peso en el lugar del grafo donde se gasta. <span class="tag t-inf">INFERENCIA NUESTRA</span></p>
 
   <div class="renaper">
-    <h3>El caso RENAPER, para entender la idea <span class="tag t-ilu">ILUSTRATIVO</span></h3>
+    <h3>Primer nodo trabajado: el RENAPER <span class="tag t-ilu">ILUSTRATIVO</span></h3>
+    <p class="small">El mapa de arriba tiene siete nodos raíz. Para mostrar el método trabajamos en detalle el primero; el piloto repetiría el ejercicio con los demás y los agregaría en una sola curva del Estado.</p>
     <p>Armamos una simulación con el servicio de validación del RENAPER como nodo raíz y tres escenarios, uno por cada propiedad de la información: la caída del servicio durante días (A), una exposición masiva de datos de identidad (B) y la aceptación de identidades suplantadas con deepfakes o ataques a la prueba de vida (C). Los números no describen el riesgo real del RENAPER: los parámetros de bancos, fraude y ciudadanos no tienen fuente pública. Sirven para mostrar tres cosas.</p>
     <div class="chart" role="img" aria-label="Pérdida esperada por componente">
       <h4>1. La mayor parte de la pérdida cae afuera del nodo: unas 4 veces la propia</h4>
@@ -404,6 +489,18 @@ footer p{max-width:none}
   </table></div>
 </section>
 
+
+<section id="s27">
+  <h2><span class="n">2.7 · BLOQUE G</span>Límites y críticas</h2>
+  <div class="cols">
+    <div class="box"><h4>Escasez de datos</h4><p>Las encuestas de pérdida están dominadas por pocas respuestas extremas (Florêncio y Herley, 2011). En la Argentina ningún incidente tiene costo publicado. Los defensores responden con estimación calibrada de expertos (Hubbard y Seiersen); eso no reemplaza el dato de fraude por suplantación, que hoy no existe.</p></div>
+    <div class="box"><h4>Falsa precisión</h4><p>RAND (2018) estimó el costo global del riesgo cibernético entre 1,1% y 32,4% del PIB según los supuestos. FAIR responde con distribuciones y comparando alternativas con los mismos supuestos. Un piloto tiene que mostrar qué supuestos invierten el ranking.</p></div>
+    <div class="box"><h4>Daño social y uso político de los montos</h4><p>La salud o la confianza no tienen precio de mercado, y un monto puede leerse como juicio sobre una gestión. Proponemos separar las cuentas, monetizar solo lo defendible y poner el modelo bajo revisión independiente (SIGEN o la AGN), con el método fijado antes de ver el resultado.</p></div>
+    <div class="box"><h4>Agregación</h4><p>Las pérdidas cibernéticas están interrelacionadas (Biener, Eling y Wirfs, 2015). Se resuelve modelando los eventos comunes; el límite es que el mapa de dependencias entre organismos no está publicado.</p></div>
+  </div>
+  <p style="margin-top:12px">La crítica más fuerte no es que FAIR esté mal sino que los datos públicos no alcanzan para la rama que más pesa. La alternativa, las matrices de riesgo, tiene los mismos problemas de datos y además errores matemáticos demostrados (Cox, 2008).</p>
+</section>
+
 <div class="chap" id="t3"><span class="cn">3.</span><h2>Tabla de incidentes (Argentina y región)</h2></div>
 <p class="sub">La columna de costo estimable es inferencia nuestra: indica con qué cuenta podría estimarse, no un monto. Ningún incidente argentino tiene costo documentado.</p>
 <div class="tbl"><table class="wide">
@@ -433,7 +530,7 @@ footer p{max-width:none}
 </table></div>
 
 <div class="chap" id="t4"><span class="cn">4.</span><h2>Tabla comparativa de países</h2></div>
-<p class="sub">Uso real documentado significa respaldado por un documento del propio gobierno o por una fuente independiente. Las declaraciones del FAIR Institute o de proveedores no cuentan.</p>
+<p class="sub">Uso real documentado significa respaldado por un documento del propio gobierno o por una fuente independiente. Las declaraciones del FAIR Institute o de proveedores no cuentan. Las filas de América Latina agregadas en esta versión se verificaron contra normas y sitios oficiales cuando estuvieron disponibles, y si no, contra prensa especializada; donde fue así, lo indicamos.</p>
 <div class="tbl"><table class="wide">
   <thead><tr><th>País u organismo</th><th>Marco o método</th><th>Quién lo exige</th><th>¿Cuantifica en dinero?</th><th>Uso real documentado</th><th>Fuentes</th></tr></thead>
   <tbody>
@@ -445,12 +542,52 @@ footer p{max-width:none}
     <tr><td class="org">OCDE y multilaterales</td><td>Recomendación de la OCDE; Banco Mundial; BID y OEA</td><td>Adhesión voluntaria</td><td class="no-c">No (solo estimaciones macro)</td><td>Estimaciones de daño en porcentaje del PIB, sin uso por gobiernos</td><td class="src">OCDE; Banco Mundial 2024; BID/OEA 2020 y 2025</td></tr>
     <tr><td class="org">Colombia</td><td>Guía de riesgo de Función Pública v6 (2022) y v7 (2025)</td><td>Función Pública, para entidades públicas</td><td class="yes-c">Sí, en bandas de salarios mínimos</td><td>Escala monetaria en una guía oficial; no FAIR</td><td class="src">Guía v6 (p. 42); guía v7</td></tr>
     <tr><td class="org">Brasil</td><td>Política Nacional de Ciberseguridad (Decreto 11.856/2023); auditorías del TCU</td><td>Presidencia; el TCU audita</td><td class="no-c">No (madurez de controles)</td><td>No; el TCU mide madurez (Acórdão 2387/2024)</td><td class="src">TCU; Planalto</td></tr>
+    <tr><td class="org">Chile</td><td>Ley 21.663, Ley Marco de Ciberseguridad (2024); ANCI, que opera desde 2025; Documento Técnico N.º 70 del CAIGG (gestión de riesgos, ISO 31000)</td><td>ANCI; CAIGG para el gobierno</td><td class="no-c">No encontrado</td><td>No encontramos cuantificación en dinero. GTD (2023) es el caso regional de proveedor compartido</td><td class="src">Ley 21.663; estudios jurídicos (verificado con matiz)</td></tr>
+    <tr><td class="org">Uruguay</td><td>Marco de Ciberseguridad de AGESIC, obligatorio con nivel de madurez mínimo por perfil (Decreto 66/2025); alcanza a privados con servicios críticos para el Estado</td><td>AGESIC</td><td class="no-c">No (madurez)</td><td>No encontrado</td><td class="src">impo.com.uy, Decreto 66/2025; gub.uy (AGESIC)</td></tr>
+    <tr><td class="org">México</td><td>Política General de Ciberseguridad para la APF (DOF 17/12/2025); Plan Nacional 2025-2030; ley general anunciada, sin aprobación encontrada</td><td>Agencia de Transformación Digital (ATDT)</td><td class="no-c">No</td><td>No encontrado. SEDENA (2022) como incidente de referencia</td><td class="src">DOF 17/12/2025; DPL News; MobileTime (verificado con matiz)</td></tr>
+    <tr><td class="org">Perú</td><td>Marco de Confianza Digital (DU 007-2020), reglamentado por el DS 126-2025-PCM (04/11/2025)</td><td>Secretaría de Gobierno y Transformación Digital (PCM)</td><td class="no-c">No</td><td>No encontrado; tampoco incidentes estatales con costo documentado</td><td class="src">El Peruano; LP Derecho (verificado con matiz)</td></tr>
+    <tr><td class="org">Costa Rica</td><td>Estrategia Nacional de Ciberseguridad 2023-2027 (MICITT, noviembre de 2023), con la gestión de riesgos como pilar</td><td>MICITT</td><td class="mid-c">Ex ante no; el costo de la emergencia de 2022 sí quedó documentado</td><td>Costo ex post: ₡13.418,9 M de atención directa (CNE)</td><td class="src">MICITT; EEAS; TeleSemana (verificado con matiz)</td></tr>
+    <tr><td class="org">Paraguay</td><td>Estrategia Nacional de Ciberseguridad 2025-2028 (Decreto 3900, 22/05/2025), que actualiza el Plan de 2017 (Decreto 7052/2017)</td><td>MITIC</td><td class="no-c">No</td><td>No encontrado. Se aprobó tras ataques a 18 sitios públicos</td><td class="src">MITIC (documento ENC 2025-2028); DPL News</td></tr>
+    <tr><td class="org">Ecuador</td><td>Política Nacional de Ciberseguridad (Acuerdo 006-2021, RO 479, 23/06/2021); estrategia 2022 en actualización</td><td>MINTEL</td><td class="no-c">No</td><td>No encontrado</td><td class="src">Registro Oficial; DPL News (verificado con matiz)</td></tr>
+    <tr><td class="org">República Dominicana</td><td>Estrategia Nacional de Ciberseguridad 2030 (Decreto 313-22); Decreto 685-22 sobre madurez del sector público y notificación obligatoria</td><td>Centro Nacional de Ciberseguridad (CNCS)</td><td class="no-c">No (madurez)</td><td>No encontrado</td><td class="src">cncs.gob.do; presidencia.gob.do</td></tr>
     <tr><td class="org">Argentina</td><td>DA 641/2021; Res. 44/2023; DNU 941/2025; Disp. CNC 1/2026; SIGEN (Mapa de Riesgos)</td><td>JGM, CNC, SIGEN</td><td class="no-c">No. Impacto por dimensiones sin montos; SIGEN puntúa el impacto sobre otros entes</td><td>Sin uso de FAIR ni cuantificación económica del riesgo cibernético en el SPN</td><td class="src">argentina.gob.ar; SIGEN, Mapa de Riesgos 2024</td></tr>
   </tbody>
 </table></div>
 
+<div class="chap" id="t5"><span class="cn">5.</span><h2>Qué haría falta para un piloto</h2></div>
+<p>Proponemos empezar con un nodo raíz y sus dependientes directos, con un solo salto de dependencia, y extenderlo después al resto del mapa. El candidato natural es el RENAPER, porque su vínculo con el sistema financiero está escrito en documentos del BCRA. La alternativa con menos actores es un nodo de servicio con la justicia como receptor, que registra formalmente cada día inhábil.</p>
+<div class="cols">
+  <div class="box"><h4>Lo que necesita del Estado</h4><ul>
+    <li>Patrocinio doble: el organismo raíz y el CNC.</li>
+    <li>Datos mínimos: convenios con volumen de consultas, análisis de impacto con RTO y RPO, historial de caídas y credenciales externas activas.</li>
+    <li>Dueños de las hojas externas: BCRA, innovación de la JGM y cada organismo consumidor.</li>
+    <li>Revisión independiente del modelo, naturalmente en SIGEN.</li>
+  </ul></div>
+  <div class="box"><h4>Los cinco pasos</h4><ol style="margin:0;padding-left:20px">
+    <li>Dibujar el mapa de dependencias de un salto, con las credenciales que entrega el nodo.</li>
+    <li>Fijar el punto de partida con benchmarks y declarar cada supuesto.</li>
+    <li>Reemplazar supuestos por estimaciones de los dueños de cada hoja.</li>
+    <li>Simular el evento común y comparar tres o cuatro inversiones con su costo.</li>
+    <li>Entregar la curva de excedencia, la pérdida propia y transferida, el ranking y los datos a registrar.</li>
+  </ol></div>
+</div>
+<p style="margin-top:12px">Hay una ventana concreta: la Disposición CNC 1/2026 dio 180 días desde el 14 de mayo de 2026 para el plan de recuperación con RTO y RPO. Contados como corridos vencen hacia el 10 de noviembre de 2026; la norma no aclara si son corridos o hábiles. Los organismos van a tener un análisis de impacto en días, que es el insumo para pasar a dinero. Estimamos que el piloto entra en un trimestre con los datos en mano. <span class="tag t-inf">INFERENCIA NUESTRA</span></p>
+
+<div class="chap" id="t6"><span class="cn">6.</span><h2>Datos a pedirle al Estado</h2></div>
+<div class="tbl"><table>
+  <thead><tr><th>A quién</th><th>Qué dato</th></tr></thead>
+  <tbody>
+    <tr><td class="org">BCRA</td><td>Reclamos por suplantación de identidad con canal, validación usada en el alta y monto; altas digitales diarias que validan contra el RENAPER. Es el dato faltante más importante.</td></tr>
+    <tr><td class="org">RENAPER</td><td>Convenios y consultas por entidad, credenciales externas y su revisión, RTO y RPO del servicio, historial de caídas, renovaciones de DNI por motivo, validaciones rechazadas por la prueba de vida y validaciones impugnadas por suplantación</td></tr>
+    <tr><td class="org">JGM (Innovación)</td><td>Trámites diarios que requieren validación de identidad y canal alternativo; organismos y volumen sobre GDE y TAD</td></tr>
+    <tr><td class="org">Poder Judicial</td><td>Días inhábiles por incidentes informáticos y causas por uso indebido de identidad</td></tr>
+    <tr><td class="org">CNC y SIGEN</td><td>Costos y días de inactividad de los incidentes notificados bajo la DA 641/2021; microdatos de la autoevaluación; mapa de qué organismo corre sobre qué proveedor</td></tr>
+  </tbody>
+</table></div>
+<p>Y tres decisiones de gobierno: si la cuenta es fiscal, social o ambas; quién es dueño del riesgo transferido, el nodo raíz o cada dependiente; y qué órgano revisa el modelo.</p>
+
 <footer>
-  <p>El informe completo en Word trae, además, la propuesta de piloto, los datos a pedir al Estado, los límites del enfoque, el anexo de verificación de cada cifra y la bibliografía con 148 enlaces. Lo no verificable no se usa como dato, por ejemplo el 2,4% del PIB atribuido a Costa Rica o los 65 millones de registros del RENAPER.</p>
+  <p>El informe completo en Word trae, además, el detalle de cada caso, el anexo de verificación de cada cifra y la bibliografía con 148 enlaces. Lo no verificable no se usa como dato, por ejemplo el 2,4% del PIB atribuido a Costa Rica o los 65 millones de registros del RENAPER.</p>
   <p>Joaquín Galermes · Safe-U · octubre de 2026.</p>
 </footer>
 </main>
