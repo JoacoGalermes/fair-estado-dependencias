@@ -166,9 +166,10 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-o
 .dm-main{grid-template-columns:minmax(0,1.02fr) minmax(0,1fr)}
 .dm-m span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .demo.m-arbol .dm-main{grid-template-columns:minmax(0,1.34fr) minmax(0,1fr)}
-.demo.m-arbol .dm-m{padding:8px 9px}
-.demo.m-arbol .dm-m b{font-size:17px}
-.demo.m-arbol .dm-m i{right:8px;top:auto;bottom:11px}
+/* en modo árbol la columna es angosta: los indicadores van en 2×2 para que valor y variación no se pisen */
+.demo.m-arbol .dm-mets{grid-template-columns:repeat(2,1fr);gap:6px 8px}
+.demo.m-arbol .dm-m{padding:6px 11px}
+.demo.m-arbol .dm-m b{font-size:18px}
 /* con un valor movido, el «antes» ocupa el renglón del subtítulo: el nodo no crece ni pisa los operadores */
 .dtn.chg small{display:none}
 .demo.m-arbol .dm-tabs button{padding:5px 8px 7px}
