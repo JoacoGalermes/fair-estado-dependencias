@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Exfiltración en el Estado nacional</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: escenario fijo de 1280×720 (la demo de la Eko) escalado al ancho, con notas debajo. */
+:root{
+  --page:#DCE0F2; --stage:#F3F5FF; --gridl:rgba(9,11,82,.05);
+  --ink:#090B52; --ink2:#293033; --mute:#5A619A; --line:rgba(9,11,82,.14); --card:rgba(9,11,82,.04);
+  --surface:#FFFFFF; --blue:#0054F2; --green:#03FF9E; --gtext:#008C56; --curve:#00A866;
+  --coral:#D6381A; --tvar:#7A3FD1; --rootbg:#10156a; --rootink:#C3C9EE; --lv1bg:rgba(0,84,242,.10);
+  --dealbg:rgba(3,255,158,.08); --shadow:rgba(9,11,82,.18);
+  --fh:'Bahnschrift','DIN Alternate','Segoe UI',system-ui,sans-serif;
+  --f:'Segoe UI','Helvetica Neue',system-ui,sans-serif;
+  --fm:'Cascadia Code','Consolas',ui-monospace,monospace;
+}
+/* Fondo claro fijo, también con el sistema en modo oscuro (pedido del autor). */
+:root{color-scheme:light}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--page);color:var(--ink);font-family:var(--f);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1920px;margin:0 auto}
+.stage-wrap{position:relative;width:100%;overflow:hidden;border-radius:14px;box-shadow:0 10px 40px var(--shadow)}
+.stage{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0;
+  background:linear-gradient(var(--gridl) 1px,transparent 1px) 0 0/60px 60px,
+             linear-gradient(90deg,var(--gridl) 1px,transparent 1px) 0 0/60px 60px,var(--stage)}
+button{font-family:var(--f)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+.demo{position:absolute;inset:0;padding:20px 34px 16px;display:flex;flex-direction:column}
+.dm-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;gap:14px}
+.dm-head>div:first-child{min-width:0;display:flex;align-items:baseline}
+.dm-t{font-family:var(--fh);font-size:24px;font-weight:700;color:var(--ink);letter-spacing:-.01em;white-space:nowrap}
+.dm-t::before{content:'</ en vivo > ';font-family:var(--fm);font-size:12px;font-weight:400;color:var(--gtext);vertical-align:4px;margin-right:4px}
+.dm-s{font-family:var(--fm);font-size:12px;color:var(--mute);margin-left:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.dm-hd-r{display:flex;align-items:center;gap:14px;flex:0 0 auto}
+.dm-act{font-family:var(--fm);font-size:14px;font-weight:700;color:var(--mute);white-space:nowrap;max-width:360px;overflow:hidden;text-overflow:ellipsis}
+.dm-act.on{color:var(--gtext)}
+.dm-modos{display:flex;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:9px;padding:3px}
+.dm-modos button{font-family:var(--fm);font-size:11px;font-weight:700;color:var(--mute);background:transparent;border:none;border-radius:7px;padding:5px 11px;cursor:pointer}
+.dm-modos button:hover{color:var(--ink)}
+.dm-modos button.on{background:rgba(3,255,158,.16);color:var(--gtext)}
+.dm-auto{white-space:nowrap;font-family:var(--fm);font-size:11px;font-weight:700;color:var(--mute);background:var(--card);border:1px solid var(--line);border-radius:20px;padding:4px 12px;cursor:pointer;display:flex;gap:7px;align-items:center}
+.dm-auto::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--mute)}
+.dm-auto.on{color:var(--gtext);border-color:rgba(3,255,158,.45)}
+.dm-auto.on::before{background:var(--green);animation:blink 1.2s steps(1) infinite}
+@keyframes blink{50%{opacity:.2}}
+
+.dm-main{flex:1;display:grid;grid-template-columns:1.02fr 1fr;gap:20px;min-height:0;transition:all .28s}
+.dm-left,.dm-right{display:flex;flex-direction:column;min-height:0;min-width:0}
+.dm-tree{position:relative;height:244px;flex:0 0 auto;transition:all .28s}
+.dm-tree svg{position:absolute;inset:0;width:100%;height:100%}
+#dm-svg path{stroke:var(--line);transition:stroke .16s,stroke-width .16s}
+#dm-svg path.dhl{stroke:var(--green);stroke-width:5}
+.dtn{position:absolute;transform:translateX(-50%);text-align:center;border-radius:10px;padding:8px 6px;z-index:2;cursor:pointer;
+  background:var(--card);border:1px solid rgba(76,134,255,.45);transition:box-shadow .16s,transform .16s}
+.dtn .sg{display:block;font-family:var(--fm);font-size:11px;font-weight:700;color:var(--blue);letter-spacing:.04em}
+.dtn .nm{display:block;font-family:var(--fh);font-weight:700;font-size:17px;color:var(--ink);margin-top:2px;line-height:1.1;font-variant-numeric:tabular-nums}
+.dtn small{display:block;font-size:10.5px;color:var(--mute);margin-top:2px}
+.dtn.lv0{background:var(--rootbg);border-color:var(--green);box-shadow:0 0 26px rgba(3,255,158,.22)}
+.dtn.lv0 .sg,.dtn.lv0 .nm{color:var(--green)}
+.dtn.lv0 small{color:var(--rootink)}
+.dtn.lv1{background:var(--lv1bg);border-color:var(--blue)}
+.dtn.lv1 .sg{color:var(--gtext)}
+.dtn[data-k="sl"]{border-color:rgba(255,90,54,.55);background:rgba(255,90,54,.08)}
+.dtn[data-k="sl"] .sg{color:var(--coral)}
+.dop{position:absolute;transform:translate(-50%,-50%);z-index:3;width:24px;height:24px;border-radius:50%;background:var(--stage);
+  border:1px solid var(--mute);display:grid;place-items:center;font-family:var(--fm);font-size:11px;font-weight:700;color:var(--ink)}
+.dtn:hover{box-shadow:0 6px 20px var(--shadow)}
+.dtn.sel{box-shadow:0 0 0 3px rgba(76,134,255,.55)}
+.dtn.lv0.sel,.dtn.lv1.sel{box-shadow:0 0 0 3px rgba(3,255,158,.55),0 0 26px rgba(3,255,158,.22)}
+.dtn .was{display:none}
+.dtn.chg{box-shadow:0 0 0 2px rgba(255,90,54,.7)}
+.dtn.chg .was{display:block;font-family:var(--fm);font-size:9.5px;line-height:1;color:var(--coral);margin-top:3px;text-decoration:line-through}
+.dtn.lv0.chg .was{color:#FF9C85}
+.dtn.dhl{transform:translate(-50%,-2px) scale(1.03);z-index:5;box-shadow:0 0 0 3px var(--green),0 10px 26px rgba(3,255,158,.3)}
+
+.dm-det{margin-top:12px;background:var(--card);border:1px solid var(--line);border-left:5px solid var(--blue);border-radius:10px;padding:14px 18px;overflow:hidden;align-self:start;width:100%}
+.dm-det h5{font-family:var(--fh);font-size:17px;font-weight:700;color:var(--ink);margin-bottom:5px}
+.dm-det p{font-size:13px;line-height:1.38;color:var(--mute);margin-bottom:10px}
+.dm-det table{width:100%;border-collapse:collapse}
+.dm-det td{font-size:13.5px;padding:4px 0;color:var(--ink2)}
+.dm-det td:last-child{text-align:right;font-weight:700;color:var(--blue);font-family:var(--fh);font-variant-numeric:tabular-nums;white-space:nowrap;padding-left:10px}
+.dm-det tr.tot td{border-top:1px solid var(--line);padding-top:6px;font-weight:800;color:var(--ink)}
+.dm-det tr.tot td:last-child{color:var(--gtext)}
+.dm-det em{display:block;font-size:12px;color:var(--mute);font-style:italic;margin-top:9px}
+
+.dm-tabs{display:flex;gap:4px;flex:0 0 auto;margin-bottom:8px}
+.dm-tabs button{font-size:12.5px;font-weight:700;color:var(--mute);background:transparent;border:none;border-bottom:3px solid transparent;padding:5px 10px 7px;cursor:pointer;white-space:nowrap}
+.dm-tabs button:hover{color:var(--ink)}
+.dm-tabs button.on{color:var(--gtext);border-bottom-color:var(--green)}
+.dm-cvwrap{position:relative;flex:1;min-height:0}
+.dm-cv{width:100%;height:100%;display:block;cursor:crosshair}
+.dm-tip{position:absolute;display:none;transform:translate(-50%,-118%);background:var(--rootbg);color:#EEF1FF;border:1px solid rgba(3,255,158,.4);
+  font-size:12.5px;line-height:1.32;padding:7px 11px;border-radius:7px;pointer-events:none;white-space:nowrap}
+.dm-tip b{color:var(--green);font-size:15px}
+.dm-mets{flex:0 0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.dm-m{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--green);border-radius:9px;padding:8px 11px;position:relative}
+.dm-m span{display:block;font-family:var(--fm);font-size:11px;color:var(--mute)}
+.dm-m b{display:block;white-space:nowrap;font-family:var(--fh);font-size:21px;font-weight:700;color:var(--gtext);margin-top:2px;font-variant-numeric:tabular-nums}
+.dm-m:nth-child(2){border-left-color:var(--coral)} .dm-m:nth-child(2) b{color:var(--coral)}
+.dm-m:nth-child(3){border-left-color:var(--tvar)} .dm-m:nth-child(3) b{color:var(--tvar)}
+.dm-m.dm-cap{border-left-color:var(--ink)} .dm-m.dm-cap b,.dm-m.dm-cap span{color:var(--ink)}
+.dm-m i{position:absolute;right:10px;top:9px;font-style:normal;font-size:11px;font-weight:700}
+.dm-m i.dn{color:var(--gtext)} .dm-m i.up{color:var(--coral)}
+
+.dm-deal{flex:0 0 auto;display:none;align-items:baseline;flex-wrap:wrap;gap:0 14px;margin-top:12px;padding:11px 20px;border-radius:11px;background:var(--dealbg);border:1px solid rgba(3,255,158,.35)}
+.dm-deal.on{display:flex}
+.dm-deal .q{font-size:15px;font-weight:800;color:var(--gtext)}
+.dm-deal .c,.dm-deal .e{font-size:15px;color:var(--ink2)}
+.dm-deal b{color:var(--ink);font-weight:800;font-variant-numeric:tabular-nums}
+.dm-deal .fl{color:var(--mute);font-size:17px}
+.dm-deal .r{margin-left:auto;font-family:var(--fm);font-size:17px;font-weight:700;padding:3px 12px;border-radius:8px}
+.dm-deal .r.pos{background:rgba(3,255,158,.16);color:var(--gtext)}
+.dm-deal .r.neg{background:rgba(255,90,54,.16);color:var(--coral)}
+
+.dm-bot{flex:0 0 auto;margin-top:12px}
+.dm-chips{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.dm-chips .dlbl{font-family:var(--fm);font-size:12px;color:var(--mute);margin-right:4px}
+.dm-chips button{font-size:13px;font-weight:700;color:var(--ink);background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:5px 15px;cursor:pointer;text-align:center}
+.dm-chips button:hover{border-color:var(--green)}
+.dm-chips button.frec{border-color:rgba(76,134,255,.5)}
+.dm-chips button.dmag{border-color:rgba(255,90,54,.5)}
+.dm-chips button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.dm-chips button.dmag.on{background:var(--coral);border-color:var(--coral)}
+.dm-chips button i{display:block;font-style:normal;font-family:var(--fm);font-size:9.5px;font-weight:400;color:var(--mute);margin-top:2px}
+.dm-chips button.on i{color:rgba(255,255,255,.8)}
+.dm-chips button.clr{color:var(--mute);border-style:dashed;background:transparent;font-weight:500}
+/* ficha del control, en el lugar del panel de detalle */
+.dm-det.ctl{background:var(--surface)}
+.dm-det.ctl.dmag{border-left-color:var(--coral)}
+.dm-det.ctl .i-h b{font-family:var(--fh);font-size:15.5px;color:var(--ink);line-height:1.2;display:block}
+.dm-det.ctl .i-nodo{font-family:var(--fm);font-size:11px;color:var(--blue);margin-top:3px}
+.dm-det.ctl.dmag .i-nodo{color:var(--coral)}
+.dm-det.ctl .i-w{font-size:12.5px;line-height:1.38;color:var(--ink2);margin-top:6px}
+.dm-det.ctl .i-n{display:flex;gap:18px;margin-top:8px;padding-top:7px;border-top:1px solid var(--line)}
+.dm-det.ctl .i-n4{display:grid;grid-template-columns:repeat(4,auto);justify-content:space-between}
+.dm-det.ctl .i-n span{font-size:12.5px;color:var(--ink2);font-weight:600;white-space:nowrap}
+.dm-det.ctl .i-n em{display:block;font-style:normal;font-size:10px;font-family:var(--fm);color:var(--mute);font-weight:400;margin-bottom:1px}
+.dm-det.ctl .i-n b.pos{color:var(--gtext)} .dm-det.ctl .i-n b.neg{color:var(--coral)}
+.demo.m-resultado .dm-det.ctl .i-w{display:none}
+.demo.m-resultado .dm-det.ctl .i-n4{grid-template-columns:repeat(2,auto);gap:6px 18px}
+.dm-pista{margin-top:8px;font-size:12.5px;color:var(--mute)}
+.dm-pista b{color:var(--ink)}
+.dm-sliders{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 26px;margin-top:9px}
+.dm-c{display:grid;grid-template-columns:150px 1fr 50px;align-items:center;gap:10px}
+.dm-c label{font-size:12px;font-weight:700;color:var(--ink2)}
+.dm-c.dmag label{color:var(--coral)}
+.dm-c.drag label{color:var(--gtext)}
+.dm-c b{font-family:var(--fh);font-size:13px;font-weight:800;color:var(--blue);text-align:right;font-variant-numeric:tabular-nums}
+.dm-c.dmag b{color:var(--coral)}
+.dm-c .rail{position:relative;display:block;width:100%}
+.dm-c input[type=range]{-webkit-appearance:none;appearance:none;display:block;width:100%;margin:0;height:5px;border-radius:3px;background:var(--line);outline:none}
+.dm-c input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:17px;height:17px;border-radius:50%;background:var(--blue);border:3px solid var(--stage);cursor:pointer}
+.dm-c input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--blue);border:3px solid var(--stage);cursor:pointer}
+.dm-c.dmag input[type=range]::-webkit-slider-thumb{background:var(--coral)}
+.dm-c.dmag input[type=range]::-moz-range-thumb{background:var(--coral)}
+.dm-c.drag input[type=range]::-webkit-slider-thumb{background:var(--green)}
+.dm-c .rail .base{position:absolute;top:50%;width:2px;height:15px;margin-top:-7.5px;margin-left:-1px;background:var(--mute);border-radius:1px;pointer-events:none}
+.dm-c.dmag .rail .base{background:var(--coral)}
+
+.dm-main{grid-template-columns:minmax(0,1.02fr) minmax(0,1fr)}
+.dm-m span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.demo.m-arbol .dm-main{grid-template-columns:minmax(0,1.34fr) minmax(0,1fr)}
+.demo.m-arbol .dm-m{padding:8px 9px}
+.demo.m-arbol .dm-m b{font-size:17px}
+.demo.m-arbol .dm-m i{right:8px;top:auto;bottom:11px}
+/* con un valor movido, el «antes» ocupa el renglón del subtítulo: el nodo no crece ni pisa los operadores */
+.dtn.chg small{display:none}
+.demo.m-arbol .dm-tabs button{padding:5px 8px 7px}
+.demo.m-arbol .dm-tree{height:262px}
+.demo.m-arbol .dtn .nm{font-size:19px}
+.demo.m-resultado .dm-main{grid-template-columns:minmax(0,.62fr) minmax(0,1fr)}
+.demo.m-resultado .dm-tree{width:147%;height:244px;transform:scale(.68);transform-origin:top left;margin-bottom:-78px}
+.demo.m-resultado .dtn small{display:none}
+.demo.m-resultado .dm-det h5{font-size:14px}
+.demo.m-resultado .dm-det p{display:none}
+.demo.m-resultado .dm-det td{font-size:12px}
+
+/* notas debajo del escenario */
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:28px;margin-top:26px;padding-inline:4px}
+.notes section{min-width:0}
+.notes h2{font-family:var(--fh);font-size:15px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--blue);margin-bottom:8px}
+.notes p,.notes li{font-size:14.5px;line-height:1.55;color:var(--ink2);max-width:65ch}
+.notes p+p{margin-top:8px}
+.notes ul{list-style:none;display:grid;gap:4px}
+.notes kbd{font-family:var(--fm);font-size:12px;background:var(--card);border:1px solid var(--line);border-radius:5px;padding:1px 6px;color:var(--ink)}
+.small-hint{display:none;font-size:13px;color:var(--mute);margin-bottom:10px}
+@media (max-width:760px){.small-hint{display:block}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+  <p class="small-hint">La demo está pensada para pantalla grande o proyector. En el teléfono se ve reducida; girarlo ayuda.</p>
+  <div class="stage-wrap" id="stage-wrap"><div class="stage" id="stage"><div class="demo" id="demo-host"></div></div></div>
+
+  <div class="notes">
+    <section>
+      <h2>El escenario</h2>
+      <p>Un registro nacional de datos personales que consultan decenas de organismos del Estado. Una credencial legítima de un organismo consumidor cae en manos de un tercero y se usa para extraer, consulta tras consulta, millones de registros de identidad. Semanas después los datos aparecen a la venta.</p>
+      <p>El costo no se queda en el organismo que custodia el registro. Lo pagan también los organismos que validan contra él, la seguridad social y la recaudación, los bancos y billeteras, la justicia y los propios ciudadanos. La pestaña «Quién pierde» lo muestra.</p>
+    </section>
+    <section>
+      <h2>Cómo se usa</h2>
+      <ul>
+        <li>Arranca sola en piloto automático. Cualquier click o tecla la pasa a manual; <kbd>P</kbd> la retoma.</li>
+        <li><kbd>1</kbd> a <kbd>5</kbd> encienden los controles en forma acumulada; <kbd>X</kbd> los apaga.</li>
+        <li><kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> <kbd>R</kbd> <kbd>T</kbd> cambian la vista; <kbd>A</kbd> y <kbd>S</kbd> alternan árbol y resultado.</li>
+        <li>Click en un nodo abre su composición. Los deslizadores mueven cada hoja del árbol y la simulación corre en vivo.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>De dónde salen los números</h2>
+      <p>Es un modelo ilustrativo y no describe a ningún organismo en particular. Todos los parámetros son supuestos, en el orden de magnitud del modelo nacional del informe: fraude de USD 1.000 a 3.000 por caso explotado, una fracción chica de las identidades expuestas efectivamente explotada y reemisión de documentos a unos USD 20.</p>
+      <p>Motor FAIR: TEF = CF × PoA, vulnerabilidad = P(TC &gt; RS), Poisson compuesto con severidades lognormales. Cada combinación de controles se simula con 100.000 años y semilla fija, así que los números se repiten exactos. Los costos de los controles son anuales e incluyen la implementación prorrateada a tres años.</p>
+    </section>
+  </div>
+</div>
+
+<script>
+/* ═══ Motor FAIR (réplica de fair.js de la Eko, con las hojas tomadas de los datos) ═══ */
+(function (global) {
+  "use strict";
+  function mulberry32(a){return function(){a|=0;a=(a+0x6D2B79F5)|0;let t=Math.imul(a^(a>>>15),1|a);
+    t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296;};}
+  function makeRng(seed){const u=mulberry32(seed);let spare=null;return{uniform:u,
+    normal:function(){if(spare!==null){const s=spare;spare=null;return s;}let a=0;while(a===0)a=u();const b=u();
+      const r=Math.sqrt(-2*Math.log(a)),th=2*Math.PI*b;spare=r*Math.sin(th);return r*Math.cos(th);},
+    poisson:function(l){if(l>30)return Math.max(0,Math.round(l+Math.sqrt(l)*this.normal()));
+      const L=Math.exp(-l);let k=0,p=1;do{k++;p*=u();}while(p>L);return k-1;}};}
+  function erf(x){const s=x<0?-1:1;x=Math.abs(x);const t=1/(1+0.3275911*x);
+    const y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x);return s*y;}
+  let PRIMARIAS=[],SECUNDARIAS=[];
+  function hojas(prim,sec){PRIMARIAS=prim;SECUNDARIAS=sec;F.PRIMARIAS=prim;F.SECUNDARIAS=sec;}
+  function vulnerabilidad(p){const mu=p.tc_mu-p.rs_mu,sd=Math.hypot(p.tc_sd,p.rs_sd);return 0.5*(1-erf(-mu/(sd*Math.SQRT2)));}
+  function tef(p){return p.cf*p.poa;}
+  function lef(p){return tef(p)*vulnerabilidad(p);}
+  function severidadEsperada(p){let prim=0,sec=0;const det={};
+    PRIMARIAS.forEach(k=>{det[k]=p[k+"_med"]*Math.exp(p[k+"_sig"]*p[k+"_sig"]/2);prim+=det[k];});
+    SECUNDARIAS.forEach(k=>{det[k]=p.sep*p[k+"_med"]*Math.exp(p[k+"_sig"]*p[k+"_sig"]/2);sec+=det[k];});
+    return{total:prim+sec,primaria:prim,secundaria:sec,detalle:det};}
+  function simular(p,n,seed){const rng=makeRng(seed),lambda=lef(p),out=new Float64Array(n);
+    const pm=PRIMARIAS.map(k=>[Math.log(p[k+"_med"]),p[k+"_sig"]]),sm=SECUNDARIAS.map(k=>[Math.log(p[k+"_med"]),p[k+"_sig"]]);
+    for(let i=0;i<n;i++){const ev=rng.poisson(lambda);let tot=0;
+      for(let e=0;e<ev;e++){for(let j=0;j<pm.length;j++)tot+=Math.exp(pm[j][0]+pm[j][1]*rng.normal());
+        if(rng.uniform()<p.sep)for(let j=0;j<sm.length;j++)tot+=Math.exp(sm[j][0]+sm[j][1]*rng.normal());}
+      out[i]=tot;}return out;}
+  function percentil(s,q){const i=(s.length-1)*q,lo=Math.floor(i),hi=Math.ceil(i);return lo===hi?s[lo]:s[lo]+(s[hi]-s[lo])*(i-lo);}
+  function metricas(x,umbral){const n=x.length;let suma=0,ceros=0,gu=0;
+    for(let i=0;i<n;i++){suma+=x[i];if(x[i]===0)ceros++;if(x[i]>umbral)gu++;}
+    const s=Float64Array.from(x).sort(),var95=percentil(s,.95);let cs=0,cn=0;
+    for(let i=0;i<n;i++)if(x[i]>=var95){cs+=x[i];cn++;}
+    const ale=suma/n,tvar95=cn?cs/cn:var95;
+    return{ale:ale,var95:var95,tvar95:tvar95,p_cero:ceros/n,p_gt_u:gu/n,_sorted:s};}
+  function curva(s,xmax,pasos){const n=s.length,pts=[];
+    for(let k=0;k<=pasos;k++){const t=xmax*k/pasos;let lo=0,hi=n;
+      while(lo<hi){const m=(lo+hi)>>1;if(s[m]>t)hi=m;else lo=m+1;}pts.push([t,(n-lo)/n*100]);}return pts;}
+  function aplicar(base,ctrls,pisos){const q=Object.assign({},base);
+    ctrls.forEach(c=>Object.keys(c.efecto||{}).forEach(k=>{
+      if(/_med$|_sig$/.test(k))q[k]=q[k]*(1+c.efecto[k]);else q[k]=q[k]+c.efecto[k];}));
+    Object.keys(pisos||{}).forEach(k=>{q[k]=(k==="rs_mu")?Math.min(q[k],pisos[k]):Math.max(q[k],pisos[k]);});return q;}
+  function money(v){const a=Math.abs(v);
+    if(a>=1e9)return"USD "+(v/1e9).toFixed(2).replace(".",",")+"B";
+    if(a>=100e6)return"USD "+Math.round(v/1e6).toLocaleString("de-DE")+"M";
+    if(a>=1e6)return"USD "+(v/1e6).toFixed(2).replace(".",",")+"M";
+    return"USD "+Math.round(v/1e3)+"K";}
+  function pct(v,d){return(v*100).toFixed(d===undefined?0:d).replace(".",",")+"%";}
+  function num(v,d){return v.toFixed(d===undefined?2:d).replace(".",",");}
+  const F={makeRng,hojas,vulnerabilidad,tef,lef,severidadEsperada,simular,metricas,curva,aplicar,money,pct,num,PRIMARIAS,SECUNDARIAS};
+  global.FAIR=F;
+})(window);
+
+/* ═══ Datos del escenario: todos son supuestos ilustrativos ═══ */
+window.FAIR_DATA = {
+  nombre: "Exfiltración de un registro nacional",
+  sub: "una credencial de un organismo consumidor, millones de registros afuera",
+  umbral: 10e6, XM: 40e6,
+  base: { cf: 24, poa: 0.15, tc_mu: 58, tc_sd: 15, rs_mu: 84, rs_sd: 10, sep: 0.60,
+    respuesta_med: 1.2e6, respuesta_sig: 0.6, servicio_med: 0.8e6, servicio_sig: 0.8,
+    reemplazo_med: 0.6e6, reemplazo_sig: 0.6,
+    fraude_med: 2.5e6, fraude_sig: 1.3, reemision_med: 0.5e6, reemision_sig: 1.2,
+    prestaciones_med: 0.8e6, prestaciones_sig: 1.2, litigios_med: 0.4e6, litigios_sig: 1.0,
+    canales_med: 0.6e6, canales_sig: 1.0 },
+  prim: ["respuesta", "servicio", "reemplazo"],
+  sec: ["fraude", "reemision", "prestaciones", "litigios", "canales"],
+  hojas: { respuesta: "Respuesta y contención", servicio: "Validación degradada",
+    reemplazo: "Credenciales e integraciones", fraude: "Fraude con identidad",
+    reemision: "Reemisión y revalidación", prestaciones: "Prestaciones y tributos",
+    litigios: "Litigios e investigación", canales: "Vuelta a lo presencial" },
+  pisos: { rs_mu: 95, cf: 10, sep: 0.2, fraude_med: 600000, reemision_med: 120000, prestaciones_med: 200000 },
+  /* quién paga cada hoja: cada fila suma 1 */
+  inst: [
+    { id: "cus", n: "Organismo custodio del registro", s: { respuesta: 1, servicio: .3, reemplazo: .7, litigios: .35 } },
+    { id: "con", n: "Organismos que validan contra él", s: { servicio: .6, reemplazo: .3, reemision: .5, canales: .6 } },
+    { id: "soc", n: "Seguridad social y recaudación", s: { prestaciones: 1 } },
+    { id: "fin", n: "Bancos y billeteras", s: { fraude: .55 } },
+    { id: "ciu", n: "Ciudadanos", s: { fraude: .45, reemision: .5, servicio: .1, canales: .4 } },
+    { id: "jus", n: "Justicia y fuerzas de seguridad", s: { litigios: .65 } }
+  ],
+  controles: [
+    { id: "acc", corto: "Consumo controlado", rama: "frec",
+      nombre: "Acceso de los organismos consumidores con mínimo privilegio, cuotas y límites de consulta",
+      detalle: "Cada organismo consulta el registro por una pasarela con cuotas por credencial, consultas de a una en lugar de descargas masivas, alertas por volumen anómalo y revisión semestral de quién tiene acceso a qué.",
+      porque: "En las filtraciones conocidas de registros públicos de la región el patrón se repite: una credencial legítima de un organismo consumidor usada para extraer volumen. Limitar el volumen por consulta achica el botín aunque la credencial caiga.",
+      nodo: "RS · Fraude · Reemisión · Prestaciones", efectoTxt: "RS +3 percentiles · fraude, reemisión y prestaciones −35%",
+      efecto: { rs_mu: 3, fraude_med: -0.35, reemision_med: -0.35, prestaciones_med: -0.35 },
+      costo: 180000, costoDet: { licencia: 60000, implementacion: 150000, fte: 1.0 } },
+    { id: "mfa", corto: "MFA y bóveda", rama: "frec",
+      nombre: "MFA resistente a phishing y bóveda para credenciales privilegiadas y de servicio",
+      detalle: "Segundo factor con llave física o passkey para operadores y administradores, y bóveda con rotación automática para las cuentas de servicio que usan las integraciones de los organismos.",
+      porque: "Es la puerta que el escenario usa literalmente: una credencial que sirve sola, sin segundo factor y sin rotación.",
+      nodo: "RS", efectoTxt: "RS de 84 a 91 percentil", efecto: { rs_mu: 7 },
+      costo: 220000, costoDet: { licencia: 90000, implementacion: 180000, fte: 0.6 } },
+    { id: "exp", corto: "Exposición", rama: "frec",
+      nombre: "Gestión de exposición: inventario de integraciones, parcheo crítico a 7 días y retiro de interfaces viejas",
+      detalle: "Inventario vivo de cada interfaz que expone el registro, SLA de parcheo crítico a 7 días con cumplimiento medido y baja de los servicios web heredados que nadie usa pero siguen abiertos.",
+      porque: "Cada interfaz olvidada es un contacto más para el atacante. Achicar la superficie baja la frecuencia de intentos que llegan a algo.",
+      nodo: "CF · RS", efectoTxt: "CF de 24 a 18 · RS +2 percentiles", efecto: { cf: -6, rs_mu: 2 },
+      costo: 150000, costoDet: { licencia: 50000, implementacion: 90000, fte: 0.8 } },
+    { id: "det", corto: "Detección", rama: "dmag",
+      nombre: "Detección de exfiltración (UEBA y DLP) con respuesta coordinada a nivel nacional",
+      detalle: "Analítica de comportamiento sobre las consultas al registro, prevención de fuga en la salida y un procedimiento acordado con el equipo nacional de respuesta para cortar credenciales en todos los organismos a la vez.",
+      porque: "No evita el acceso: corta la extracción a mitad de camino. Cuanto antes se detecta, menos registros salen y menos probable es que los datos lleguen a usarse.",
+      nodo: "SEP · Respuesta · Fraude · Prestaciones", efectoTxt: "SEP de 0,60 a 0,50 · respuesta −20% · fraude y prestaciones −25%",
+      efecto: { sep: -0.10, respuesta_med: -0.20, fraude_med: -0.25, prestaciones_med: -0.25, reemision_med: -0.20 },
+      costo: 420000, costoDet: { licencia: 180000, implementacion: 240000, fte: 1.5 } },
+    { id: "min", corto: "Minimización", rama: "dmag",
+      nombre: "Minimización: validación por token o respuesta sí/no en lugar del dato completo, y cifrado en reposo",
+      detalle: "Los organismos consumidores reciben la confirmación que necesitan (la persona existe, la foto coincide) y no la ficha completa. Lo que se copia en las bases intermedias queda tokenizado y cifrado.",
+      porque: "Es el único control que no toca la frecuencia: cambia qué se puede robar. Un lote de tokens no sirve para abrir una cuenta ni para cobrar una prestación.",
+      nodo: "SEP · Fraude · Reemisión · Litigios", efectoTxt: "SEP −0,15 · fraude y reemisión −40% · prestaciones y litigios −30%",
+      efecto: { sep: -0.15, fraude_med: -0.40, reemision_med: -0.40, prestaciones_med: -0.30, litigios_med: -0.30 },
+      costo: 480000, costoDet: { licencia: 150000, implementacion: 450000, fte: 1.2 } }
+  ],
+  palancas: [
+    { hoja: "cf", key: "cf", lab: "CF · contactos por año", rango: [14, 40] },
+    { hoja: "poa", key: "poa", lab: "PoA · probabilidad de acción", rango: [0.08, 0.25] },
+    { hoja: "tc", key: "tc_mu", lab: "TC · capacidad del atacante", rango: [48, 68] },
+    { hoja: "rs", key: "rs_mu", lab: "RS · resistencia del registro", rango: [76, 90] },
+    { hoja: "sep", key: "sep", lab: "SEP · los datos se usan", rango: [0.4, 0.8] },
+    { hoja: "respuesta", key: "respuesta_med", lab: "Respuesta y contención", rango: [0.8e6, 1.8e6] },
+    { hoja: "servicio", key: "servicio_med", lab: "Validación degradada", rango: [0.4e6, 1.6e6] },
+    { hoja: "reemplazo", key: "reemplazo_med", lab: "Credenciales e integraciones", rango: [0.35e6, 1e6] },
+    { hoja: "fraude", key: "fraude_med", lab: "Fraude con identidad", rango: [1e6, 6e6] },
+    { hoja: "reemision", key: "reemision_med", lab: "Reemisión y revalidación", rango: [0.2e6, 1.2e6] },
+    { hoja: "prestaciones", key: "prestaciones_med", lab: "Prestaciones y tributos", rango: [0.3e6, 2e6] },
+    { hoja: "litigios", key: "litigios_med", lab: "Litigios e investigación", rango: [0.15e6, 1e6] },
+    { hoja: "canales", key: "canales_med", lab: "Vuelta a lo presencial", rango: [0.25e6, 1.4e6] }
+  ]
+};
+
+/* ═══ Demo interactiva (demo.js de la Eko, adaptada al Estado nacional) ═══ */
+(function () {
+  "use strict";
+  const F = window.FAIR, D = window.FAIR_DATA;
+  F.hojas(D.prim, D.sec);
+  const N_EX = 100000, N_LIVE = 45000, SEED = 20261015, XM = D.XM, U = D.umbral;
+  const $ = (s, r) => (r || document).querySelector(s);
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  let C = {};
+  function colores() {
+    C = { blue: css("--blue"), mag: css("--coral"), ink: css("--ink"), green: css("--curve"), amber: css("--tvar"),
+          mute: css("--mute"), line: css("--line"), bg: css("--stage") };
+  }
+
+  let activos = new Set(), nodoSel = "risk", vista = "curva", modo = "arbol", libre = false, magPct = 100, hover = null;
+
+  /* reparto entre instituciones */
+  function porInstitucion(p) {
+    const det = F.severidadEsperada(p).detalle, tot = Object.values(det).reduce((a, b) => a + b, 0);
+    return D.inst.map(it => {
+      let v = 0; Object.keys(it.s).forEach(k => v += (det[k] || 0) * it.s[k]);
+      return { id: it.id, n: it.n, frac: tot ? v / tot : 0 };
+    });
+  }
+  const fracFuera = p => 1 - porInstitucion(p).find(z => z.id === "cus").frac;
+
+  /* cache de corridas exactas: 100.000 años por combinación, semilla fija */
+  const cache = {};
+  function resumen(x, p) {
+    const m = F.metricas(x, U), s = m._sorted;
+    const pts = F.curva(s, XM, 110);
+    const BINS = 56, h = new Array(BINS).fill(0); let fuera = 0;
+    for (let i = 0; i < x.length; i++) {
+      const v = x[i]; if (v <= 0) continue; if (v > XM) { fuera++; continue; }
+      h[Math.min(BINS - 1, Math.floor(v / XM * BINS))]++;
+    }
+    delete m._sorted;
+    m.fuera = m.ale * fracFuera(p);
+    return { m: m, pts: pts, hist: h, out: fuera / x.length };
+  }
+  const ctrlsDe = ids => D.controles.filter(c => ids.indexOf(c.id) >= 0);
+  function exacto(ids) {
+    const k = ids.slice().sort().join("|");
+    if (!cache[k]) { const p = F.aplicar(D.base, ctrlsDe(ids), D.pisos); cache[k] = resumen(F.simular(p, N_EX, SEED), p); }
+    return cache[k];
+  }
+
+  const NODOS = {
+    risk: { x: 50, y: 1, w: 210, lv: 0, sg: "RIESGO", nm: "Pérdida anual", sub: "ALE del Estado y la sociedad" },
+    lef: { x: 25, y: 36.5, w: 178, lv: 1, sg: "LEF", nm: "Frecuencia", sub: "exfiltraciones / año" },
+    lm: { x: 75, y: 36.5, w: 178, lv: 1, sg: "LM", nm: "Magnitud", sub: "$ por exfiltración" },
+    tef: { x: 12, y: 72, w: 148, lv: 2, sg: "TEF", nm: "Frec. amenaza", sub: "intentos / año" },
+    vuln: { x: 38, y: 72, w: 148, lv: 2, sg: "VULN", nm: "Vulnerabilidad", sub: "P(TC > RS)" },
+    pl: { x: 62, y: 72, w: 148, lv: 2, sg: "PL", nm: "Primaria", sub: "siempre" },
+    sl: { x: 88, y: 72, w: 148, lv: 2, sg: "SL", nm: "Secundaria", sub: "si los datos se usan" }
+  };
+  const ARISTAS = [["risk", "lef"], ["risk", "lm"], ["lef", "tef"], ["lef", "vuln"], ["lm", "pl"], ["lm", "sl"]];
+  const OPS = [{ x: 50, y: 32.5, t: "×" }, { x: 25, y: 68, t: "×" }, { x: 75, y: 68, t: "+" }];
+
+  const DET = {
+    risk: p => ({ t: "RIESGO · pérdida anual esperada para el Estado",
+      d: "El producto de las dos ramas. Suma lo que pierde el organismo custodio y lo que se traslada al resto del Estado y a la sociedad.",
+      f: [["Frecuencia de pérdida (LEF)", F.num(F.lef(p), 3) + " / año"],
+          ["× Magnitud por evento (LM)", F.money(F.severidadEsperada(p).total)],
+          ["= Pérdida anual esperada (fórmula)", F.money(F.lef(p) * F.severidadEsperada(p).total)]],
+      n: "Una exfiltración cada " + F.num(1 / F.lef(p), 1) + " años. La simulación da " +
+         F.money(ultimo ? ultimo.m.ale : 0) + "; la diferencia con la fórmula es ruido de muestreo." }),
+    lef: p => ({ t: "LEF · cuántas exfiltraciones por año",
+      d: "Hacen falta dos cosas: que alguien lo intente en serio y que el intento llegue a sacar datos.",
+      f: [["Frecuencia de amenaza (TEF)", F.num(F.tef(p), 2) + " / año"],
+          ["× Vulnerabilidad", F.pct(F.vulnerabilidad(p), 2)],
+          ["= Exfiltraciones efectivas (LEF)", F.num(F.lef(p), 3) + " / año"]],
+      n: "Cuatro hojas estimadas, un resultado que nadie estimó." }),
+    tef: p => ({ t: "TEF · los intentos serios",
+      d: "Cuántas veces tocan el registro o alguna de sus integraciones, y en qué fracción el actor decide avanzar.",
+      f: [["CF · Contact Frequency", F.num(p.cf, 0) + " / año"],
+          ["× PoA · Probability of Action", F.pct(p.poa)],
+          ["= Frecuencia de amenaza (TEF)", F.num(F.tef(p), 2) + " / año"]],
+      n: "CF sale de la telemetría del centro de operaciones; PoA, de un taller con los organismos que consumen el registro." }),
+    vuln: p => ({ t: "VULN · no es un número del organismo",
+      d: "Es la probabilidad de que la capacidad del atacante supere la resistencia del registro: dos distribuciones enfrentadas.",
+      f: [["TC · capacidad del atacante", "p" + F.num(p.tc_mu, 0) + " ± " + F.num(p.tc_sd, 0)],
+          ["RS · resistencia del registro", "p" + F.num(p.rs_mu, 0) + " ± " + F.num(p.rs_sd, 0)],
+          ["= P(TC > RS)", F.pct(F.vulnerabilidad(p), 2)]],
+      n: "Si el atacante mejora y el registro no se mueve, la vulnerabilidad sube sola." }),
+    pl: p => { const s = F.severidadEsperada(p);
+      return { t: "PL · pérdida primaria, en todo evento",
+        d: "Lo que cuesta contener y volver a operar, aunque los datos no aparezcan nunca.",
+        f: D.prim.map(k => [D.hojas[k], F.money(s.detalle[k])]).concat([["= Subtotal primaria", F.money(s.primaria)]]),
+        n: "Se reparte entre el custodio y los organismos que dependen de la validación." }; },
+    sl: p => { const s = F.severidadEsperada(p);
+      return { t: "SL · secundaria, si los datos se usan",
+        d: "Gateada por SEP. Si la extracción se corta a tiempo o lo robado no sirve, no hay fraude, ni reemisión, ni litigios.",
+        f: [["Probabilidad de que se usen (SEP)", F.pct(p.sep)]]
+          .concat(D.sec.map(k => [D.hojas[k], F.money(s.detalle[k])]))
+          .concat([["= Subtotal secundaria", F.money(s.secundaria)]]),
+        n: "Ya viene multiplicado por SEP: es el aporte esperado, no el condicional." }; },
+    lm: p => { const s = F.severidadEsperada(p);
+      return { t: "LM · cuánto cuesta una exfiltración",
+        d: "Las ocho formas de pérdida, sumadas para todo el Estado y la sociedad.",
+        f: [["Pérdida primaria", F.money(s.primaria)], ["+ Pérdida secundaria", F.money(s.secundaria)],
+            ["= Magnitud por evento", F.money(s.total)]],
+        n: F.pct(fracFuera(p)) + " de este monto cae fuera del organismo custodio." }; }
+  };
+
+  const CTRL = [
+    { id: "cf", lab: "CF · contactos / año", min: 6, max: 60, st: 1, v: () => D.base.cf, set: (p, v) => p.cf = v, fmt: v => F.num(v, 0), mag: false },
+    { id: "poa", lab: "PoA · prob. de acción", min: 2, max: 50, st: 1, v: () => D.base.poa * 100, set: (p, v) => p.poa = v / 100, fmt: v => F.num(v, 0) + "%", mag: false },
+    { id: "tc", lab: "TC · capacidad atacante", min: 30, max: 90, st: 1, v: () => D.base.tc_mu, set: (p, v) => p.tc_mu = v, fmt: v => "p" + F.num(v, 0), mag: false },
+    { id: "rs", lab: "RS · resistencia", min: 50, max: 98, st: 1, v: () => D.base.rs_mu, set: (p, v) => p.rs_mu = v, fmt: v => "p" + F.num(v, 0), mag: false },
+    { id: "sep", lab: "SEP · los datos se usan", min: 5, max: 95, st: 1, v: () => D.base.sep * 100, set: (p, v) => p.sep = v / 100, fmt: v => F.num(v, 0) + "%", mag: true },
+    { id: "mag", lab: "Magnitud · las ocho formas", min: 30, max: 200, st: 5, v: () => 100, set: () => {}, fmt: v => F.num(v, 0) + "%", mag: true }
+  ];
+  const PADRE = { cf: "tef", poa: "tef", tc: "vuln", rs: "vuln", sep: "sl", mag: "lm" };
+  const SUBE = { tef: "lef", vuln: "lef", pl: "lm", sl: "lm", lef: "risk", lm: "risk" };
+  function cadena(k) { const o = []; while (k) { o.push(k); k = SUBE[k]; } return o; }
+  function iluminar(id) {
+    const ks = id ? cadena(PADRE[id]) : [];
+    document.querySelectorAll(".dtn").forEach(n => n.classList.toggle("dhl", ks.indexOf(n.dataset.k) >= 0));
+    document.querySelectorAll("#dm-svg path").forEach(pa => pa.classList.toggle("dhl", ks.indexOf(pa.dataset.a) >= 0 && ks.indexOf(pa.dataset.b) >= 0));
+  }
+
+  let BASE_VALS = null;
+  function valoresDe(p) {
+    const s = F.severidadEsperada(p);
+    return { risk: F.money(F.lef(p) * s.total), lef: F.num(F.lef(p), 3), lm: F.money(s.total), tef: F.num(F.tef(p), 2),
+             vuln: F.pct(F.vulnerabilidad(p), 1), pl: F.money(s.primaria), sl: F.money(s.secundaria) };
+  }
+  const ctrlActivos = () => D.controles.filter(c => activos.has(c.id));
+
+  function params() {
+    const p = F.aplicar(D.base, ctrlActivos(), D.pisos);
+    if (libre) {
+      CTRL.forEach(c => { if (c.id === "mag") return; const el = $("#dm-" + c.id); if (el) c.set(p, +el.value); });
+      const k = magPct / 100; D.prim.concat(D.sec).forEach(n => p[n + "_med"] *= k);
+    }
+    return p;
+  }
+
+  function build(host) {
+    host.innerHTML =
+      '<div class="dm-head"><div><span class="dm-t">' + D.nombre + '</span><span class="dm-s">' + D.sub + '</span></div>' +
+        '<div class="dm-hd-r"><div class="dm-modos" id="dm-modos"><button data-m="arbol">a · el árbol</button>' +
+        '<button data-m="resultado">s · el resultado</button></div><div class="dm-act" id="dm-act">sin controles</div></div></div>' +
+      '<div class="dm-main"><div class="dm-left"><div class="dm-tree" id="dm-tree"><svg id="dm-svg"></svg></div>' +
+        '<div class="dm-det" id="dm-det"></div></div>' +
+        '<div class="dm-right"><div class="dm-tabs" id="dm-tabs"></div><div class="dm-cvwrap"><canvas class="dm-cv" id="dm-cv" width="1120" height="600"></canvas>' +
+        '<div class="dm-tip" id="dm-tip"></div></div><div class="dm-mets" id="dm-mets"></div></div></div>' +
+      '<div class="dm-deal" id="dm-deal"></div>' +
+      '<div class="dm-bot"><div class="dm-chips" id="dm-chips"></div><div class="dm-pista" id="dm-pista"></div>' +
+        '<div class="dm-sliders" id="dm-sliders"></div></div>';
+
+    const tree = $("#dm-tree", host);
+    Object.keys(NODOS).forEach(k => {
+      const n = NODOS[k], d = document.createElement("div");
+      d.className = "dtn lv" + n.lv; d.dataset.k = k;
+      d.style.cssText = "left:" + n.x + "%;top:" + n.y + "%;width:" + n.w + "px";
+      d.innerHTML = '<span class="sg">' + n.sg + '</span><span class="nm" data-v="' + k + '">…</span><small>' + n.sub +
+        '</small><span class="was" data-w="' + k + '"></span>';
+      d.onclick = () => { nodoSel = k; render(false); };
+      tree.appendChild(d);
+    });
+    OPS.forEach(o => { const d = document.createElement("div"); d.className = "dop";
+      d.style.cssText = "left:" + o.x + "%;top:" + o.y + "%"; d.textContent = o.t; tree.appendChild(d); });
+
+    const VISTAS = [["curva", "Curva"], ["dist", "Distribución"], ["comp", "Componentes"],
+                    ["tor", "Qué mueve"], ["quien", "Quién pierde"]];
+    $("#dm-tabs").innerHTML = VISTAS.map(([k, l]) => '<button data-v="' + k + '">' + l + "</button>").join("");
+    $("#dm-tabs").querySelectorAll("button").forEach(b => b.onclick = () => { vista = b.dataset.v; render(false); });
+    $("#dm-modos").querySelectorAll("button").forEach(b => b.onclick = () => setModo(b.dataset.m));
+
+    $("#dm-chips").innerHTML = '<span class="dlbl">Controles</span>' +
+      D.controles.map(c => '<button class="' + c.rama + '" data-c="' + c.id + '">' + c.corto + '<i>' + F.money(c.costo) + " / año</i></button>").join("") +
+      '<button class="clr" data-c="__none">ninguno</button>';
+    $("#dm-chips").querySelectorAll("button").forEach(b => {
+      b.onclick = () => {
+        if (b.dataset.c === "__none") activos.clear();
+        else activos.has(b.dataset.c) ? activos.delete(b.dataset.c) : activos.add(b.dataset.c);
+        libre = false; resetSliders(); render(false);
+      };
+      b.onmouseenter = () => info(b.dataset.c);
+      b.onmouseleave = () => info(null);
+      b.onfocus = () => info(b.dataset.c);
+      b.onblur = () => info(null);
+    });
+
+    $("#dm-sliders").innerHTML = CTRL.map(c => {
+      const pos = (c.v() - c.min) / (c.max - c.min) * 100;
+      const izq = "calc(8.5px + " + pos.toFixed(2) + "% - " + (pos * 0.17).toFixed(2) + "px)";
+      return '<div class="dm-c' + (c.mag ? " dmag" : "") + '" data-p="' + c.id + '"><label for="dm-' + c.id + '">' + c.lab + "</label>" +
+        '<span class="rail"><input type="range" id="dm-' + c.id + '" min="' + c.min + '" max="' + c.max + '" step="' + c.st +
+        '" value="' + c.v() + '"><i class="base" style="left:' + izq + '"></i></span><b id="dmv-' + c.id + '">…</b></div>';
+    }).join("");
+    CTRL.forEach(c => {
+      const inp = $("#dm-" + c.id);
+      inp.oninput = () => { if (c.id === "mag") magPct = +inp.value; libre = true; render(true); };
+      inp.onchange = () => render(false);
+    });
+    $("#dm-sliders").querySelectorAll(".dm-c").forEach(d => {
+      d.onmouseenter = () => iluminar(d.dataset.p); d.onmouseleave = () => iluminar(null);
+    });
+    aristas();
+    setModo("arbol");
+  }
+
+  function setModo(m) {
+    modo = m; const host = $(".demo");
+    host.classList.remove("m-arbol", "m-resultado"); host.classList.add("m-" + m);
+    requestAnimationFrame(() => render(false));
+  }
+  function resetSliders() {
+    const p = F.aplicar(D.base, ctrlActivos(), D.pisos); magPct = 100;
+    [["cf", p.cf], ["poa", p.poa * 100], ["tc", p.tc_mu], ["rs", p.rs_mu], ["sep", p.sep * 100], ["mag", 100]]
+      .forEach(([id, v]) => { const e = $("#dm-" + id); if (e) e.value = v; });
+  }
+  function aristas() {
+    const svg = $("#dm-svg"); svg.setAttribute("viewBox", "0 0 1000 1000"); svg.setAttribute("preserveAspectRatio", "none");
+    svg.innerHTML = ARISTAS.map(([a, b]) => {
+      const A = NODOS[a], B = NODOS[b], x1 = A.x * 10, y1 = A.y * 10 + 285, x2 = B.x * 10, y2 = B.y * 10;
+      return '<path data-a="' + a + '" data-b="' + b + '" d="M' + x1 + " " + y1 + " C" + x1 + " " + (y1 + 30) + " " + x2 + " " +
+        (y2 - 30) + " " + x2 + " " + y2 + '" fill="none" stroke-width="3" vector-effect="non-scaling-stroke"/>';
+    }).join("");
+  }
+
+  /* La ficha del control ocupa el lugar del panel de detalle mientras el mouse está encima:
+     no flota sobre el gráfico ni sobre el árbol. Al salir vuelve el detalle del nodo. */
+  let infoId = null;
+  function info(id) {
+    infoId = (id && id !== "__none") ? id : null;
+    if (ultimo) pintarDet(ultimo.p);
+  }
+  function fichaControl(c) {
+    const B = exacto([]).m, M = exacto([c.id]).m;
+    const evita = B.ale - M.ale, fuera = B.fuera - M.fuera, rosi = (evita - c.costo) / c.costo;
+    return '<div class="i-h"><b>' + c.nombre + '</b></div><div class="i-nodo">mueve ' + c.nodo + "</div>" +
+      '<div class="i-w">' + c.porque + "</div>" +
+      '<div class="i-n"><span><em>efecto</em>' + c.efectoTxt + "</span></div>" +
+      '<div class="i-n i-n4"><span><em>costo anual</em>' + F.money(c.costo) + "</span>" +
+      "<span><em>evita</em>" + F.money(evita) + "</span>" +
+      "<span><em>fuera del custodio</em>" + F.money(fuera) + "</span>" +
+      "<span><em>ROSI</em><b class='" + (rosi < 0 ? "neg" : "pos") + "'>" + (rosi > 0 ? "+" : "") + Math.round(rosi * 100) + "%</b></span></div>";
+  }
+  function pintarDet(p) {
+    const box = $("#dm-det"), c = infoId ? D.controles.find(x => x.id === infoId) : null;
+    if (c) {
+      box.className = "dm-det ctl " + c.rama;
+      box.innerHTML = fichaControl(c);
+      return;
+    }
+    const d = DET[nodoSel](p);
+    box.className = "dm-det";
+    box.innerHTML = "<h5>" + d.t + "</h5><p>" + d.d + "</p><table>" +
+      d.f.map((f, i) => "<tr" + (i === d.f.length - 1 ? ' class="tot"' : "") + "><td>" + f[0] + "</td><td>" + f[1] + "</td></tr>").join("") +
+      "</table><em>" + d.n + "</em>";
+  }
+  function pista() {
+    const n = activos.size;
+    $("#dm-pista").innerHTML = n
+      ? "<b>" + n + (n === 1 ? " control encendido." : " controles encendidos.") + "</b> Se prenden y apagan por separado, en cualquier orden. Pasá el mouse por uno para ver qué hace y cuánto cuesta."
+      : "<b>Ningún control encendido: el registro tal como está hoy.</b> Pasá el mouse por un control para ver el detalle; hacé clic para encenderlo.";
+  }
+
+  let ultimo = null;
+  function render(rapido) {
+    const p = params();
+    let R;
+    if (!libre) R = exacto([...activos]);
+    else R = resumen(F.simular(p, rapido ? 24000 : N_LIVE, SEED), p);
+    const m = R.m, sev = F.severidadEsperada(p);
+    ultimo = { p: p, m: m, R: R };
+    if (!BASE_VALS) {
+      BASE_VALS = valoresDe(F.aplicar(D.base, [], D.pisos));
+      /* el nodo muestra la pérdida simulada: la referencia tiene que ser la misma corrida, no la fórmula analítica */
+      BASE_VALS.risk = F.money(exacto([]).m.ale);
+    }
+    const set = (k, v) => {
+      const e = $('[data-v="' + k + '"]'); if (e) e.textContent = v;
+      const w = $('[data-w="' + k + '"]'); if (!w) return;
+      const mov = BASE_VALS[k] !== v; w.textContent = mov ? "antes " + BASE_VALS[k] : "";
+      w.parentElement.classList.toggle("chg", mov);
+    };
+    set("risk", F.money(m.ale)); set("lef", F.num(F.lef(p), 3)); set("lm", F.money(sev.total));
+    set("tef", F.num(F.tef(p), 2)); set("vuln", F.pct(F.vulnerabilidad(p), 1));
+    set("pl", F.money(sev.primaria)); set("sl", F.money(sev.secundaria));
+    document.querySelectorAll(".dtn").forEach(n => n.classList.toggle("sel", n.dataset.k === nodoSel));
+
+    pintarDet(p);
+
+    const B = exacto([]).m;
+    $("#dm-mets").innerHTML = [["Pérdida esperada", "ale"], ["VaR 95%", "var95"], ["TVaR 95%", "tvar95"], ["Pagan otros", "fuera"]]
+      .map(([lab, k]) => {
+        const dd = B[k] ? (m[k] - B[k]) / B[k] * 100 : 0;
+        const chip = Math.abs(dd) < .5 ? "" : '<i class="' + (dd < 0 ? "dn" : "up") + '">' + (dd > 0 ? "+" : "") + Math.round(dd) + "%</i>";
+        return '<div class="dm-m' + (k === "fuera" ? " dm-cap" : "") + '"><span>' + lab + "</span><b>" + F.money(m[k]) + "</b>" + chip + "</div>";
+      }).join("");
+
+    CTRL.forEach(c => { const e = $("#dmv-" + c.id), inp = $("#dm-" + c.id); if (e && inp) e.textContent = c.fmt(+inp.value); });
+    $("#dm-chips").querySelectorAll("button[data-c]").forEach(b => b.classList.toggle("on", activos.has(b.dataset.c)));
+    const act = ctrlActivos();
+    const nombreAct = act.length === 1 ? act[0].corto : act.length === 2 ? act.map(c => c.corto).join(" + ") : act.length + " controles";
+    $("#dm-act").textContent = act.length ? nombreAct + "  ·  " + F.money(act.reduce((s, c) => s + c.costo, 0)) + " / año" : "sin controles";
+    $("#dm-act").className = "dm-act" + (act.length ? " on" : "");
+    $("#dm-tabs").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.v === vista));
+    $("#dm-modos").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.m === modo));
+
+    const deal = $("#dm-deal");
+    if (act.length) {
+      const costo = act.reduce((z, c) => z + c.costo, 0), evita = B.ale - m.ale, fuera = B.fuera - m.fuera;
+      const ret = (evita - costo) / costo;
+      deal.className = "dm-deal on";
+      deal.innerHTML = '<span class="q">' + (act.length > 2 ? (act.length === D.controles.length ? "Los cinco controles" : act.length + " controles") : nombreAct) + '</span><span class="c">cuesta <b>' + F.money(costo) +
+        '</b> al año</span><span class="fl">→</span><span class="e">evita <b>' + F.money(evita) + '</b> de pérdida esperada</span>' +
+        '<span class="e">y <b>' + F.money(fuera) + '</b> de eso en otros organismos y la sociedad</span>' +
+        '<span class="r ' + (ret < 0 ? "neg" : "pos") + '">' + (ret > 0 ? "+" : "") + Math.round(ret * 100) + "%</span>";
+    } else { deal.className = "dm-deal"; deal.innerHTML = ""; }
+    pista();
+    dibujar(rapido);
+  }
+
+  /* ── vistas: espacio lógico fijo 1120×600, escalado uniforme ── */
+  let cvGeo = { k: 1, dx: 0, dy: 0, dpr: 2 };
+  function ctx() {
+    const cv = $("#dm-cv"), g = cv.getContext("2d"), r = cv.getBoundingClientRect(), dpr = Math.max(2, window.devicePixelRatio || 1);
+    const w = Math.max(2, Math.round(r.width * dpr)), h = Math.max(2, Math.round(r.height * dpr));
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+    const k = Math.min(w / 1120, h / 600), dx = (w - 1120 * k) / 2, dy = (h - 600 * k) / 2;
+    cvGeo = { k, dx, dy, dpr };
+    g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, w, h); g.setTransform(k, 0, 0, k, dx, dy);
+    return { g, W: 1120, H: 600 };
+  }
+  function dibujar(rapido) {
+    const { g, W, H } = ctx(), { p, m, R } = ultimo;
+    if (vista === "curva") vCurva(g, W, H, m, R);
+    else if (vista === "dist") vDist(g, W, H, m, R);
+    else if (vista === "comp") vComp(g, W, H, p);
+    else if (vista === "tor") vTor(g, W, H);
+    else vQuien(g, W, H, p, m);
+  }
+  const mill = v => v === 0 ? "0" : "$" + (v / 1e6) + "M";
+
+  let curvaGeo = null;
+  function vCurva(g, W, H, m, R) {
+    const PL = 112, PR = 44, PT = 26, PB = 64, base = exacto([]).pts;
+    const pico = Math.max(base[0][1], (1 - m.p_cero) * 100), YM = Math.max(30, Math.ceil(pico * 1.12 / 10) * 10);
+    const X = v => PL + (v / XM) * (W - PL - PR), Y = v => H - PB - (v / YM) * (H - PT - PB);
+    g.strokeStyle = C.line; g.lineWidth = 2; g.fillStyle = C.mute; g.font = "500 21px Bahnschrift, Segoe UI, sans-serif";
+    g.textAlign = "right"; g.textBaseline = "middle";
+    const paso = YM > 60 ? 20 : 10;
+    for (let v = 0; v <= YM; v += paso) { g.beginPath(); g.moveTo(PL, Y(v)); g.lineTo(W - PR, Y(v)); g.stroke(); g.fillText(v + "%", PL - 16, Y(v)); }
+    g.textAlign = "center"; g.textBaseline = "top";
+    for (let v = 0; v <= XM; v += 10e6) g.fillText(mill(v), X(v), H - PB + 14);
+    g.setLineDash([8, 7]); g.strokeStyle = C.mute; g.lineWidth = 3; g.globalAlpha = .7;
+    g.beginPath(); base.forEach(([a, b], i) => i ? g.lineTo(X(a), Y(b)) : g.moveTo(X(a), Y(b))); g.stroke();
+    g.setLineDash([]); g.globalAlpha = 1;
+    if (activos.size) {
+      const alto = base.find(q => q[1] <= 16) || base[0];
+      let ey = Y(alto[1]) - 12; const otra = Y(m.p_gt_u * 100) - 20;
+      if (Math.abs(ey - otra) < 42) ey = otra - 48;
+      g.fillStyle = C.mute; g.font = "700 20px Bahnschrift, Segoe UI, sans-serif"; g.textAlign = "left"; g.textBaseline = "bottom";
+      g.fillText("hoy, sin controles", X(alto[0]) + 14, ey);
+    }
+    const pts = R.pts; curvaGeo = { PL, PR, W, pts, X, Y };
+    g.beginPath(); g.moveTo(X(0), Y(0)); pts.forEach(([a, b]) => g.lineTo(X(a), Y(b))); g.lineTo(X(XM), Y(0)); g.closePath();
+    g.fillStyle = C.green; g.globalAlpha = .12; g.fill(); g.globalAlpha = 1;
+    g.beginPath(); pts.forEach(([a, b], i) => i ? g.lineTo(X(a), Y(b)) : g.moveTo(X(a), Y(b)));
+    g.strokeStyle = C.green; g.lineWidth = 7; g.lineJoin = "round"; g.stroke();
+    const tip = $("#dm-tip");
+    if (hover !== null) {
+      const hx = Math.max(0, Math.min(XM, hover)); let hy = pts[pts.length - 1][1];
+      for (let i = 1; i < pts.length; i++) if (pts[i][0] >= hx) { const [x0, y0] = pts[i - 1], [x1, y1] = pts[i]; hy = y0 + (y1 - y0) * ((hx - x0) / ((x1 - x0) || 1)); break; }
+      g.strokeStyle = C.mute; g.lineWidth = 2; g.setLineDash([5, 5]); g.beginPath(); g.moveTo(X(hx), Y(0)); g.lineTo(X(hx), Y(YM)); g.stroke(); g.setLineDash([]);
+      g.beginPath(); g.arc(X(hx), Y(hy), 13, 0, 7); g.fillStyle = C.green; g.fill(); g.strokeStyle = C.bg; g.lineWidth = 5; g.stroke();
+      tip.style.display = "block"; tip.style.left = (X(hx) / W * 100) + "%"; tip.style.top = (Y(hy) / H * 100) + "%";
+      tip.innerHTML = "<b>" + F.pct(hy / 100, 1) + "</b> de perder<br>más de " + F.money(hx);
+    } else {
+      tip.style.display = "none";
+      const pu = m.p_gt_u * 100;
+      g.beginPath(); g.arc(X(U), Y(pu), 12, 0, 7); g.fillStyle = C.green; g.fill(); g.strokeStyle = C.bg; g.lineWidth = 5; g.stroke();
+      g.font = "700 26px Bahnschrift, Segoe UI, sans-serif"; g.fillStyle = C.ink; g.textAlign = "left"; g.textBaseline = "bottom";
+      g.fillText(F.pct(m.p_gt_u, 1) + " de perder más de USD 10M en un año", X(U) + 26, Y(pu) - 20);
+    }
+  }
+  function vDist(g, W, H, m, R) {
+    const PL = 112, PR = 44, PT = 116, PB = 64, h = R.hist, BINS = h.length, ymax = Math.max.apply(null, h) * 1.06 || 1;
+    const X = v => PL + (v / XM) * (W - PL - PR), Y = v => H - PB - (v / ymax) * (H - PT - PB);
+    g.fillStyle = C.mute; g.font = "500 21px Bahnschrift, Segoe UI, sans-serif"; g.textAlign = "center"; g.textBaseline = "top";
+    for (let v = 0; v <= XM; v += 10e6) g.fillText(mill(v), X(v), H - PB + 14);
+    const bw = (W - PL - PR) / BINS; g.fillStyle = C.blue;
+    h.forEach((v, i) => g.fillRect(X(XM * i / BINS) + 1, Y(v), bw - 2, H - PB - Y(v)));
+    [["Pérdida esperada", m.ale, C.green], ["VaR 95%", m.var95, C.mag], ["TVaR 95%", m.tvar95, C.amber]].forEach(([lab, v, col], i) => {
+      if (v > XM) return;
+      g.strokeStyle = col; g.lineWidth = 4; g.beginPath(); g.moveTo(X(v), Y(0)); g.lineTo(X(v), PT - 8 - i * 34); g.stroke();
+      g.fillStyle = col; g.font = "700 22px Bahnschrift, Segoe UI, sans-serif"; g.textAlign = "left"; g.textBaseline = "bottom";
+      g.fillText(lab + "  " + F.money(v), X(v) + 12, PT - 10 - i * 34);
+    });
+    g.fillStyle = C.mute; g.font = "italic 400 20px Bahnschrift, Segoe UI, sans-serif"; g.textAlign = "right"; g.textBaseline = "bottom";
+    g.fillText(F.pct(m.p_cero) + " de los años no tiene ninguna exfiltración  ·  " + F.num(R.out * 100, 1) + "% se sale por la derecha", W - PR, H - 12);
+  }
+  function vComp(g, W, H, p) {
+    const s = F.severidadEsperada(p);
+    const items = D.prim.concat(D.sec).map(k => ({ n: D.hojas[k], v: s.detalle[k], pr: D.prim.indexOf(k) >= 0 })).sort((a, b) => b.v - a.v);
+    const max = items[0].v, PL = 300, PR = 168, PT = 20, PB = 48, bh = (H - PT - PB) / items.length;
+    items.forEach((it, i) => {
+      const y = PT + i * bh, w = Math.max(2, (it.v / max) * (W - PL - PR));
+      g.fillStyle = it.pr ? C.blue : C.mag; g.globalAlpha = it.pr ? 1 : .85; g.fillRect(PL, y + bh * .17, w, bh * .66); g.globalAlpha = 1;
+      g.fillStyle = C.ink; g.font = "700 22px Bahnschrift, Segoe UI, sans-serif"; g.textAlign = "right"; g.textBaseline = "middle";
+      g.fillText(it.n, PL - 20, y + bh / 2);
+      g.fillStyle = it.pr ? C.blue : C.mag; g.textAlign = "left"; g.fillText(F.money(it.v), PL + w + 18, y + bh / 2);
+    });
+    g.fillStyle = C.mute; g.font = "italic 400 20px Bahnschrift, Segoe UI, sans-serif"; g.textAlign = "left"; g.textBaseline = "bottom";
+    g.fillText("azul = primaria, ocurre siempre   ·   coral = secundaria, ya multiplicada por SEP   ·   costo esperado por evento", 20, H - 10);
+  }
+  let torCache = null, torClave = "";
+  function calcTornado(p) {
+    const N = 14000, base = F.metricas(F.simular(p, N, SEED), U).ale;
+    const out = D.palancas.map(pl => {
+      const vs = pl.rango.map(v => { const q = Object.assign({}, p); q[pl.key] = v; return F.metricas(F.simular(q, N, SEED), U).ale; });
+      return { lab: pl.lab, hoja: pl.hoja, bajo: Math.min(vs[0], vs[1]), alto: Math.max(vs[0], vs[1]), amp: Math.abs(vs[1] - vs[0]) };
+    });
+    out.sort((a, b) => b.amp - a.amp); return { base, filas: out };
+  }
+  function vTor(g, W, H) {
+    const p = ultimo.p, ck = [...activos].sort().join("|") + "|" + (libre ? JSON.stringify(p) : "");
+    if (ck !== torClave) { torCache = calcTornado(p); torClave = ck; }
+    const f = torCache.filas.slice(0, 8), base = torCache.base, max = Math.max.apply(null, f.map(z => z.alto)) * 1.04;
+    const PL = 320, PR = 150, PT = 42, PB = 46, bh = (H - PT - PB) / f.length, X = v => PL + (v / max) * (W - PL - PR);
+    f.forEach((z, i) => {
+      const y = PT + i * bh, frec = ["cf", "poa", "tc", "rs"].indexOf(z.hoja) >= 0;
+      g.fillStyle = frec ? C.blue : C.mag; g.globalAlpha = frec ? .95 : .8;
+      g.fillRect(X(z.bajo), y + bh * .2, Math.max(3, X(z.alto) - X(z.bajo)), bh * .6); g.globalAlpha = 1;
+      g.fillStyle = C.ink; g.font = "600 21px Bahnschrift, Segoe UI, sans-serif"; g.textAlign = "right"; g.textBaseline = "middle";
+      g.fillText(z.lab, PL - 20, y + bh / 2);
+      g.fillStyle = frec ? C.blue : C.mag; g.textAlign = "left"; g.font = "700 21px Bahnschrift, Segoe UI, sans-serif";
+      g.fillText(F.money(z.amp), X(z.alto) + 16, y + bh / 2);
+    });
+    g.strokeStyle = C.ink; g.lineWidth = 3; g.beginPath(); g.moveTo(X(base), PT - 6); g.lineTo(X(base), H - PB); g.stroke();
+    g.fillStyle = C.ink; g.font = "700 21px Bahnschrift, Segoe UI, sans-serif"; g.textAlign = "center"; g.textBaseline = "bottom";
+    g.fillText("pérdida esperada base " + F.money(base), X(base), PT - 12);
+    g.fillStyle = C.mute; g.font = "italic 400 20px Bahnschrift, Segoe UI, sans-serif"; g.textAlign = "left"; g.textBaseline = "bottom";
+    g.fillText("cuánto se movería el resultado si esa hoja estuviera mal estimada", 20, H - 10);
+  }
+  /* quién pierde: la pérdida esperada repartida entre las instituciones */
+  function vQuien(g, W, H, p, m) {
+    const pBase = F.aplicar(D.base, [], D.pisos), aleB = exacto([]).m.ale;
+    const hoy = porInstitucion(p), ant = porInstitucion(pBase);
+    const items = hoy.map((z, i) => ({ n: z.n, id: z.id, v: z.frac * m.ale, b: ant[i].frac * aleB })).sort((a, b) => b.b - a.b);
+    const max = Math.max.apply(null, items.map(z => Math.max(z.v, z.b))), PL = 360, PR = 200, PT = 20, PB = 56;
+    const bh = (H - PT - PB) / items.length;
+    items.forEach((it, i) => {
+      const y = PT + i * bh, wv = Math.max(2, it.v / max * (W - PL - PR)), wb = it.b / max * (W - PL - PR);
+      const col = it.id === "cus" ? C.blue : C.mag;
+      if (activos.size || libre) { g.strokeStyle = C.mute; g.lineWidth = 2; g.setLineDash([6, 5]); g.strokeRect(PL, y + bh * .17, wb, bh * .66); g.setLineDash([]); }
+      g.fillStyle = col; g.globalAlpha = .9; g.fillRect(PL, y + bh * .17, wv, bh * .66); g.globalAlpha = 1;
+      g.fillStyle = C.ink; g.font = "700 22px Bahnschrift, Segoe UI, sans-serif"; g.textAlign = "right"; g.textBaseline = "middle";
+      g.fillText(it.n, PL - 20, y + bh / 2);
+      g.fillStyle = col; g.textAlign = "left";
+      g.fillText(F.money(it.v) + " / año", PL + Math.max(wv, (activos.size || libre) ? wb : 0) + 18, y + bh / 2);
+    });
+    g.fillStyle = C.mute; g.font = "italic 400 20px Bahnschrift, Segoe UI, sans-serif"; g.textAlign = "left"; g.textBaseline = "bottom";
+    g.fillText(F.pct(fracFuera(p)) + " de la pérdida esperada cae fuera del organismo custodio" +
+      ((activos.size || libre) ? "   ·   punteado = hoy, sin controles" : ""), 20, H - 10);
+  }
+
+  function montarHover() {
+    const cv = $("#dm-cv");
+    cv.onmousemove = e => {
+      if (vista !== "curva" || !curvaGeo) return;
+      const r = cv.getBoundingClientRect(), sx = cv.width / r.width;
+      const px = ((e.clientX - r.left) * sx - cvGeo.dx) / cvGeo.k, { PL, PR, W } = curvaGeo;
+      if (px < PL || px > W - PR) { if (hover !== null) { hover = null; dibujar(true); } return; }
+      hover = (px - PL) / (W - PL - PR) * XM; dibujar(true);
+    };
+    cv.onmouseleave = () => { if (hover !== null) { hover = null; dibujar(false); } };
+  }
+
+  /* ── piloto automático ── */
+  const BASEV = { cf: 24, poa: 15, tc: 58, rs: 84, sep: 60, mag: 100 }, FPS = 20;
+  let autoOn = false, autoTm = null, gen = 0;
+  const suave = u => u < .5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
+  function setSl(id, v, vivo) { const e = $("#dm-" + id); if (!e) return; e.value = v;
+    e.dispatchEvent(new Event("input", { bubbles: true })); if (!vivo) e.dispatchEvent(new Event("change", { bubbles: true })); }
+  function hl(id, on) { const d = $('.dm-c[data-p="' + id + '"]'); if (!d) return; d.classList.toggle("drag", on); iluminar(on ? id : null); }
+  function guion() {
+    const A = [], quieto = s => A.push({ t: "wait", ms: s * 1000 }), tecla = k => A.push({ t: "key", k });
+    const arrastre = (tr, s, res) => A.push({ t: "drag", tr, ms: s * 1000, res }), apagar = id => A.push({ t: "hloff", id });
+    const hoja = (id, ext) => { arrastre([[id, BASEV[id], ext]], 5, id); quieto(1.4); arrastre([[id, ext, BASEV[id]]], 4); apagar(id); quieto(.4); };
+    tecla("x"); tecla("a"); tecla("q"); quieto(4);
+    hoja("cf", 48); hoja("poa", 35); hoja("tc", 80); hoja("rs", 64); hoja("sep", 90); hoja("mag", 170);
+    arrastre([["tc", 58, 80], ["rs", 84, 64]], 7, "rs"); quieto(4); apagar("rs"); tecla("x"); quieto(2);
+    tecla("s"); tecla("w"); quieto(6); tecla("e"); quieto(6); tecla("r"); quieto(7); tecla("t"); quieto(8); tecla("q"); quieto(4);
+    tecla("1"); quieto(6); tecla("x"); quieto(4); tecla("2"); quieto(6); tecla("5"); quieto(10);
+    tecla("t"); quieto(10); tecla("w"); quieto(6); tecla("r"); quieto(6); tecla("q"); quieto(10);
+    return A;
+  }
+  function pill() { const p = $("#dm-auto"); if (p) { p.classList.toggle("on", autoOn); p.textContent = autoOn ? "piloto automático · P" : "manual · P para retomar"; } }
+  function correr(A, i, g) {
+    if (g !== gen || !autoOn) return;
+    if (i >= A.length) { correr(guion(), 0, g); return; }
+    const a = A[i], sig = ms => { autoTm = setTimeout(() => correr(A, i + 1, g), ms); };
+    if (a.t === "wait") return sig(a.ms);
+    if (a.t === "key") { DEMO.tecla(a.k, true); return sig(0); }
+    if (a.t === "hloff") { hl(a.id, false); return sig(0); }
+    if (a.res) hl(a.res, true);
+    const n = Math.max(1, Math.round(a.ms / 1000 * FPS)); let k = 0;
+    const paso = () => { if (g !== gen || !autoOn) return; k++; const u = suave(k / n), ult = k >= n;
+      a.tr.forEach(([id, d, h]) => setSl(id, Math.round(d + (h - d) * u), !ult));
+      if (ult) sig(0); else autoTm = setTimeout(paso, 1000 / FPS); };
+    paso();
+  }
+  function auto(on) {
+    autoOn = on; gen++; clearTimeout(autoTm);
+    document.querySelectorAll(".dm-c.drag").forEach(d => d.classList.remove("drag")); iluminar(null); pill();
+    if (on) correr(guion(), 0, gen);
+  }
+  const DEMO = window.DEMO = {
+    montar(host) {
+      build(host); montarHover();
+      const p = document.createElement("button"); p.id = "dm-auto"; p.className = "dm-auto"; p.type = "button";
+      p.onclick = e => { e.stopPropagation(); auto(!autoOn); }; $(".dm-hd-r", host).appendChild(p); pill();
+      host.addEventListener("pointerdown", e => { if (autoOn && e.target.id !== "dm-auto") auto(false); }, true);
+    },
+    auto,
+    /* para la grabación: marca un monto sobre la curva (null lo saca) */
+    hover(v) { hover = v; if (ultimo) dibujar(v !== null); },
+    tecla(k, desdePiloto) {
+      if (!desdePiloto && autoOn && k !== "p" && k !== "P") auto(false);
+      if (k === "p" || k === "P") { auto(!autoOn); return true; }
+      const ids = D.controles.map(c => c.id);
+      if (k >= "1" && k <= String(ids.length)) { activos.clear(); ids.slice(0, +k).forEach(id => activos.add(id)); libre = false; resetSliders(); render(false); return true; }
+      if (k === "0" || k === "x" || k === "X") { activos.clear(); libre = false; resetSliders(); render(false); return true; }
+      const V = { q: "curva", w: "dist", e: "comp", r: "tor", t: "quien" };
+      if (V[k]) { vista = V[k]; render(false); return true; }
+      const M = { a: "arbol", s: "resultado" };
+      if (M[k]) { setModo(M[k]); return true; }
+      return false;
+    }
+  };
+
+  /* escenario escalado al ancho disponible */
+  const wrap = $("#stage-wrap"), stage = $("#stage");
+  function fit() { const k = Math.min(1.5, wrap.clientWidth / 1280); stage.style.transform = "scale(" + k + ")"; wrap.style.height = (720 * k) + "px"; }
+  fit();
+  colores();
+  DEMO.montar($("#demo-host"));
+  let rt = null;
+  window.addEventListener("resize", () => { fit(); clearTimeout(rt); rt = setTimeout(() => render(false), 120); });
+  const retema = () => { colores(); if (ultimo) dibujar(false); };
+  try { window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", retema); } catch (e) {}
+  new MutationObserver(retema).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  document.addEventListener("keydown", e => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.target && e.target.type === "range" && /Arrow/.test(e.key)) return;
+    if (DEMO.tecla(e.key)) e.preventDefault();
+  });
+  const reducir = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!reducir) auto(true);
+})();
+</script>
+
+</html>
