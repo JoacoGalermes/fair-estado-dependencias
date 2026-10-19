@@ -149,8 +149,8 @@ footer p{max-width:none}
 <div class="layout">
 <div>
   <div class="tabs" role="tablist" aria-label="Etapas del análisis">
-    <button class="tab" role="tab" id="t-esc" aria-controls="p-esc" aria-selected="false"><span class="i">01</span>Nodos y escenarios</button>
-    <button class="tab" role="tab" id="t-map" aria-controls="p-map" aria-selected="true"><span class="i">02</span>Propagación</button>
+    <button class="tab" role="tab" id="t-esc" aria-controls="p-esc" aria-selected="true"><span class="i">01</span>Nodos y escenarios</button>
+    <button class="tab" role="tab" id="t-map" aria-controls="p-map" aria-selected="false"><span class="i">02</span>Propagación</button>
     <button class="tab" role="tab" id="t-exp" aria-controls="p-exp" aria-selected="false"><span class="i">03</span>Exposición del Estado</button>
     <button class="tab" role="tab" id="t-agg" aria-controls="p-agg" aria-selected="false"><span class="i">04</span>Cómo agregar</button>
     <button class="tab" role="tab" id="t-inv" aria-controls="p-inv" aria-selected="false"><span class="i">05</span>Dónde invertir</button>
@@ -486,7 +486,7 @@ tabs.forEach(function(t, i){
   t.addEventListener("click", function(){selectTab(t);});
   t.addEventListener("keydown", function(e){if (e.key === "ArrowRight" || e.key === "ArrowLeft"){var n = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length-1)) % tabs.length]; n.focus(); selectTab(n);}});
 });
-selectTab($({"#nodos":"t-esc","#propagacion":"t-map","#exposicion":"t-exp","#agregar":"t-agg","#invertir":"t-inv","#supuestos":"t-sen"}[location.hash] || "t-map"));
+selectTab($({"#nodos":"t-esc","#propagacion":"t-map","#exposicion":"t-exp","#agregar":"t-agg","#invertir":"t-inv","#supuestos":"t-sen"}[location.hash] || "t-esc"));
 
 /* ---------- grafo nacional ---------- */
 var NS = "http://www.w3.org/2000/svg", svg = $("grafo"), G = {e:{}, rv:{}, dv:{}};
