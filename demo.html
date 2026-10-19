@@ -486,7 +486,7 @@ tabs.forEach(function(t, i){
   t.addEventListener("click", function(){selectTab(t);});
   t.addEventListener("keydown", function(e){if (e.key === "ArrowRight" || e.key === "ArrowLeft"){var n = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length-1)) % tabs.length]; n.focus(); selectTab(n);}});
 });
-selectTab($("t-map"));
+selectTab($({"#nodos":"t-esc","#propagacion":"t-map","#exposicion":"t-exp","#agregar":"t-agg","#invertir":"t-inv","#supuestos":"t-sen"}[location.hash] || "t-map"));
 
 /* ---------- grafo nacional ---------- */
 var NS = "http://www.w3.org/2000/svg", svg = $("grafo"), G = {e:{}, rv:{}, dv:{}};
